@@ -5,6 +5,7 @@ import {
   createTheme,
 } from '@mui/material';
 
+import { AuthProvider } from '../context/AuthContext';
 import { Header } from './Header';
 import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
@@ -26,14 +27,16 @@ export const App = () => {
   };
 
   return (
-    <div>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Header darkMode={darkMode} handleThemeChange={handleThemeChange} />
-        <Container>
-          <Outlet />
-        </Container>
-      </ThemeProvider>
-    </div>
+    <AuthProvider>
+      <div>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Header darkMode={darkMode} handleThemeChange={handleThemeChange} />
+          <Container>
+            <Outlet />
+          </Container>
+        </ThemeProvider>
+      </div>
+    </AuthProvider>
   );
 };

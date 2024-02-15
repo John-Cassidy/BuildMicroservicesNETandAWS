@@ -1,5 +1,6 @@
 import {
   AuthenticationDetails,
+  CognitoAccessToken,
   CognitoUser,
   CognitoUserPool,
   CognitoUserSession,
@@ -14,8 +15,10 @@ import {
   Typography,
 } from '@mui/material';
 import { FieldValues, useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import { useContext, useEffect } from 'react';
 
-import { Link } from 'react-router-dom';
+import { AuthContext } from '../../app/context/AuthContext';
 import { LoadingButton } from '@mui/lab';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { poolData } from './cognitoUserPool';
@@ -26,7 +29,8 @@ console.log(poolData);
 const userPool = new CognitoUserPool(poolData);
 
 export const Login = () => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
+  const authContext = useContext(AuthContext);
   const {
     register,
     handleSubmit,
@@ -34,6 +38,24 @@ export const Login = () => {
   } = useForm({
     mode: 'onTouched',
   });
+
+  useEffect(() => {
+    if (authContext?.accessToken) {
+      if (authContext?.isAdmin()) {
+        navigate('/admin');
+      } else if (authContext?.isManager()) {
+        navigate('/manager');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [
+    authContext,
+    authContext?.accessToken,
+    authContext?.isAdmin,
+    authContext?.isManager,
+    navigate,
+  ]);
 
   // Sign in
   const signIn = (username: string, password: string) => {
@@ -49,10 +71,12 @@ export const Login = () => {
 
     cognitoUser.authenticateUser(authenticationDetails, {
       onSuccess: function (result: CognitoUserSession) {
-        // console.log('access token + ' + result.getAccessToken().getJwtToken());
-        // console.log('id token + ' + result.getIdToken().getJwtToken());
-        // console.log('refresh token + ' + result.getRefreshToken().getToken());
         toast.success('Logged in');
+        const accessToken: CognitoAccessToken = result.getAccessToken();
+
+        if (authContext) {
+          authContext.setToken(accessToken);
+        }
       },
       onFailure: function (err) {
         console.error(err);
@@ -61,7 +85,7 @@ export const Login = () => {
     });
   };
 
-  const submitForm = async (data: FieldValues) => {
+  const submitForm = (data: FieldValues) => {
     signIn(data.username, data.password);
   };
 
