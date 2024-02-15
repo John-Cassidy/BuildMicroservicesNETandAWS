@@ -8,9 +8,9 @@
 // } from '@aws-amplify/ui-react';
 
 // import { Amplify } from 'aws-amplify';
-// import awsExports from '../../aws-exports';
+// import awsmobile from './aws-exports'; // Import the awsmobile configuration object
 
-// Amplify.configure(awsExports);
+// Amplify.configure(awsmobile);
 
 // interface Props extends WithAuthenticatorProps {
 //   isPassedToWithAuthenticator: boolean;
