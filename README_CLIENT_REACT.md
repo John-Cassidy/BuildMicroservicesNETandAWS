@@ -66,6 +66,110 @@ npm install axios
 npm i react-toastify
 ```
 
+### React Hook Form
+
+[Documentation](https://react-hook-form.com/)
+
+[useForm API](https://react-hook-form.com/docs/useform)
+
+```powershell
+npm i react-hook-form
+```
+
+## Cognito
+
+```powershell
+npm i amazon-cognito-identity-js aws-sdk
+npm install --save-dev @types/node
+```
+
+```tsx
+// Sign in
+const signIn = (username: string, password: string) => {
+  const authenticationDetails = new AuthenticationDetails({
+    Username: username,
+    Password: password,
+  });
+
+  const cognitoUser = new CognitoUser({
+    Username: username,
+    Pool: userPool,
+  });
+
+  cognitoUser.authenticateUser(authenticationDetails, {
+    onSuccess: function (result) {
+      console.log('access token + ' + result.getAccessToken().getJwtToken());
+      // You can use the CognitoUserSession object to get and refresh tokens.
+      // result.getIdToken().getJwtToken()
+    },
+    onFailure: function (err) {
+      console.error(err);
+    },
+  });
+};
+
+// Sign out
+const signOut = () => {
+  const cognitoUser = userPool.getCurrentUser();
+
+  if (cognitoUser != null) {
+    cognitoUser.signOut();
+  }
+};
+
+// Sign up
+const signUp = (
+  username: string,
+  password: string,
+  email: string,
+  givenName: string,
+  familyName: string,
+  address: string,
+  billingAddress: string | null = null
+) => {
+  const attributeList = [
+    new CognitoUserAttribute({
+      Name: 'email',
+      Value: email,
+    }),
+    new CognitoUserAttribute({
+      Name: 'given_name',
+      Value: givenName,
+    }),
+    new CognitoUserAttribute({
+      Name: 'family_name',
+      Value: familyName,
+    }),
+    new CognitoUserAttribute({
+      Name: 'address',
+      Value: address,
+    }),
+    // Add any other attributes you want to set
+  ];
+
+  if (billingAddress) {
+    attributeList.push(
+      new CognitoUserAttribute({
+        Name: 'custom:billing_address',
+        Value: billingAddress,
+      })
+    );
+  }
+
+  userPool.signUp(username, password, attributeList, [], (err, result) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    if (result) {
+      console.log('user name is ' + result.user.getUsername());
+    } else {
+      console.error('No result returned');
+    }
+  });
+};
+```
+
 ## AWS Cognito and Amplify
 
 [Cognito Integrate App](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-integrate-apps.html)
@@ -202,5 +306,3 @@ export default withAuthenticator(App);
 ```
 
 Note: The `aws-exports.js` file is automatically created when you run `amplify init` in your project directory. This file contains all the necessary configuration for your AWS resources. If you haven't run `amplify init` yet, you'll need to do so before you can use Amplify in your project.
-
-## New
