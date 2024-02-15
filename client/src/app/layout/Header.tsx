@@ -25,12 +25,12 @@ const navLinkStyles = {
   },
 };
 
-interface IProps {
+interface Props {
   darkMode: boolean;
   handleThemeChange: () => void;
 }
 
-export const Header = ({ handleThemeChange, darkMode }: IProps) => {
+export const Header = ({ handleThemeChange, darkMode }: Props) => {
   return (
     <AppBar position='static' sx={{ mb: 4 }}>
       <Toolbar

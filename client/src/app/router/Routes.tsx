@@ -1,6 +1,6 @@
-import { AboutPage } from '../../../features/about/AboutPage';
-import { App } from '../App';
-import { HomePage } from '../../../features/home/HomePage';
+import { AboutPage } from '../../features/about/AboutPage';
+import { App } from '../layout/App';
+import { HomePage } from '../../features/home/HomePage';
 import { createBrowserRouter } from 'react-router-dom';
 
 export const router = createBrowserRouter([
