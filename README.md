@@ -31,3 +31,12 @@ notepad credentials
 ```
 
 ## Cognito
+
+## NOTES:
+
+- attach web app project to sln
+- create wwwroot folder
+- move html files into wwwroot/ folder
+- setup startup
+- startup kestrel server and go to index.html
+- modify cognito to use localhost port of kestrel server
