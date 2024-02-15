@@ -202,3 +202,5 @@ export default withAuthenticator(App);
 ```
 
 Note: The `aws-exports.js` file is automatically created when you run `amplify init` in your project directory. This file contains all the necessary configuration for your AWS resources. If you haven't run `amplify init` yet, you'll need to do so before you can use Amplify in your project.
+
+## New
