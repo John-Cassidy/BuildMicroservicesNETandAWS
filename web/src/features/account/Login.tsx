@@ -1,6 +1,7 @@
 import {
   AuthenticationDetails,
   CognitoAccessToken,
+  CognitoIdToken,
   CognitoUser,
   CognitoUserPool,
   CognitoUserSession,
@@ -9,13 +10,11 @@ import {
   Avatar,
   Box,
   Container,
-  Grid,
   Paper,
   TextField,
   Typography,
 } from '@mui/material';
 import { FieldValues, useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
 import { useContext, useEffect } from 'react';
 
 import { AuthContext } from '../../app/context/AuthContext';
@@ -23,6 +22,7 @@ import { LoadingButton } from '@mui/lab';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { poolData } from './cognitoUserPool';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 console.log(poolData);
 
@@ -73,14 +73,30 @@ export const Login = () => {
       onSuccess: function (result: CognitoUserSession) {
         toast.success('Logged in');
         const accessToken: CognitoAccessToken = result.getAccessToken();
+        const idToken: CognitoIdToken = result.getIdToken();
 
         if (authContext) {
-          authContext.setToken(accessToken);
+          authContext.setAccessToken(accessToken);
+          authContext.setIdToken(idToken);
         }
+
+        cognitoUser.getUserAttributes((err, attributes) => {
+          if (err) {
+            console.error(err);
+          } else {
+            if (authContext) {
+              authContext.setUserDetails(attributes);
+            }
+          }
+        });
       },
       onFailure: function (err) {
         console.error(err);
         toast.error(err);
+      },
+      mfaRequired: function (codeDeliveryDetails) {
+        console.log('MFA required');
+        console.log(codeDeliveryDetails);
       },
     });
   };
@@ -142,11 +158,6 @@ export const Login = () => {
         >
           Sign In
         </LoadingButton>
-        <Grid container>
-          <Grid item>
-            <Link to='/register'>{"Don't have an account? Sign Up"}</Link>
-          </Grid>
-        </Grid>
       </Box>
     </Container>
   );

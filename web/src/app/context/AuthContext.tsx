@@ -1,10 +1,19 @@
+import {
+  CognitoAccessToken,
+  CognitoIdToken,
+  CognitoUserAttribute,
+} from 'amazon-cognito-identity-js';
 import React, { PropsWithChildren, useCallback } from 'react';
 
-import { CognitoAccessToken } from 'amazon-cognito-identity-js';
+import { IUser } from '../models/user';
 
 interface AuthContextType {
   accessToken: CognitoAccessToken | null;
-  setToken: (accessToken: CognitoAccessToken | null) => void;
+  idToken: CognitoIdToken | null;
+  user: IUser | null;
+  setAccessToken: (accessToken: CognitoAccessToken | null) => void;
+  setIdToken: (idToken: CognitoIdToken | null) => void;
+  setUserDetails: (attributes: CognitoUserAttribute[] | undefined) => void;
   clearToken: () => void;
   isAdmin: () => boolean;
   isManager: () => boolean;
@@ -17,17 +26,50 @@ export const AuthContext = React.createContext<AuthContextType | undefined>(
 export const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
   const [accessToken, setAccessToken] =
     React.useState<CognitoAccessToken | null>(null);
+  const [idToken, setIdToken] = React.useState<CognitoIdToken | null>(null);
+  const [user, setUser] = React.useState<IUser | null>(null);
 
-  const setToken = useCallback(
-    (token: CognitoAccessToken | null) => {
-      setAccessToken(token);
+  const setUserDetails = useCallback(
+    (attributes: CognitoUserAttribute[] | undefined) => {
+      if (attributes) {
+        const user: IUser = {} as IUser;
+        attributes.forEach((attribute) => {
+          switch (attribute.getName()) {
+            case 'sub':
+              user.sub = attribute.getValue();
+              break;
+            case 'email':
+              user.email = attribute.getValue();
+              break;
+            case 'email_verified':
+              user.isEmailVerified = attribute.getValue() === 'true';
+              break;
+            case 'given_name':
+              user.givenName = attribute.getValue();
+              break;
+            case 'family_name':
+              user.familyName = attribute.getValue();
+              break;
+            case 'address':
+              user.address = attribute.getValue();
+              break;
+            default:
+              break;
+          }
+        });
+        setUser(user);
+      } else {
+        setUser(null);
+      }
     },
-    [setAccessToken]
+    [setUser]
   );
 
   const clearToken = useCallback(() => {
     setAccessToken(null);
-  }, [setAccessToken]);
+    setIdToken(null);
+    setUserDetails(undefined);
+  }, [setAccessToken, setIdToken, setUserDetails]);
 
   const isAdmin = useCallback(() => {
     if (accessToken) {
@@ -40,14 +82,24 @@ export const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
   const isManager = useCallback(() => {
     if (accessToken) {
       const payload = accessToken.decodePayload();
-      return payload['cognito:groups']?.includes('Manager') ?? false;
+      return payload['cognito:groups']?.includes('HotelManager') ?? false;
     }
     return false;
   }, [accessToken]);
 
   return (
     <AuthContext.Provider
-      value={{ accessToken, setToken, clearToken, isAdmin, isManager }}
+      value={{
+        accessToken,
+        idToken,
+        user,
+        setAccessToken,
+        setIdToken,
+        setUserDetails,
+        clearToken,
+        isAdmin,
+        isManager,
+      }}
     >
       {children}
     </AuthContext.Provider>
