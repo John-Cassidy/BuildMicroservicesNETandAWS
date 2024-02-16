@@ -74,6 +74,7 @@ export const Login = () => {
         toast.success('Logged in');
         const accessToken: CognitoAccessToken = result.getAccessToken();
         const idToken: CognitoIdToken = result.getIdToken();
+        console.log(idToken);
 
         if (authContext) {
           authContext.setAccessToken(accessToken);

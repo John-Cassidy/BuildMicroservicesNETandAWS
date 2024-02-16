@@ -1,4 +1,5 @@
 import { AboutPage } from '../../features/about/AboutPage';
+import { AddHotel } from '../../features/admin/AddHotel';
 import { AdminBooking } from '../../features/admin/AdminBooking';
 import { App } from '../layout/App';
 import { ConfirmRegistration } from '../../features/account/ConfirmRegistration';
@@ -23,7 +24,13 @@ export const router = createBrowserRouter([
       },
       {
         element: <RequireAdmin />,
-        children: [{ path: 'admin', element: <AdminBooking /> }],
+        children: [
+          { path: 'admin', element: <AdminBooking /> },
+          {
+            path: 'admin/add-hotel',
+            element: <AddHotel cancelEdit={() => {}} />,
+          },
+        ],
       },
       { path: '/login', element: <Login /> },
       { path: '/register', element: <Register /> },

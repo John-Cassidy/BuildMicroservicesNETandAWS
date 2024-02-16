@@ -76,6 +76,16 @@ npm i react-toastify
 npm i react-hook-form
 ```
 
+### Drop Zone component
+
+There are a few options to choose from but you'll need to confirm they work with installed versions of Material UI and React Hook Form.
+
+Per the course instructions, we're installing react-dropzone:
+
+```powershell
+npm i react-dropzone
+```
+
 ## Cognito
 
 ```powershell
