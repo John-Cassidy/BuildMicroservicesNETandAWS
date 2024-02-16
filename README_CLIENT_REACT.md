@@ -85,6 +85,8 @@ npm install --save-dev @types/node
 
 ### Examples of signIn, signOut, signUp, etc...
 
+[Examples](https://www.npmjs.com/package/amazon-cognito-identity-js)
+
 [Article](https://www.sammeechward.com/cognito-user-pool-react)
 
 ```tsx
@@ -174,8 +176,8 @@ const signUp = (
 };
 ```
 
-### NOTES
-
 [Cognito Integrate App](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-integrate-apps.html)
 
 [Amplify Dev Center / Getting Started](https://ui.docs.amplify.aws/react/getting-started/installation)
+
+## NOTES
