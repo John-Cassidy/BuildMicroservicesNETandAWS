@@ -5,7 +5,7 @@ import { IHotel } from '../../app/models/hotel';
 import { agent } from '../../app/api/agent';
 import { useState } from 'react';
 
-export const AdminBooking = () => {
+export const HotelInventory = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<IHotel | undefined>(
     undefined
@@ -32,7 +32,7 @@ export const AdminBooking = () => {
     <>
       <Box display='flex' justifyContent='space-between'>
         <Typography sx={{ p: 2 }} variant='h4'>
-          Inventory
+          Hotel Inventory
         </Typography>
         <Typography variant='body1'>
           <Button

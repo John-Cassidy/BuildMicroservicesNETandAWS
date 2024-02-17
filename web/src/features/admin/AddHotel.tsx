@@ -38,7 +38,7 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
   } = useForm({
     mode: 'onTouched',
   });
-  const watchFile = watch('file', null);
+  const watchFile = watch('photo', null);
 
   useEffect(() => {
     if (hotel && !watchFile && !isDirty) reset(hotel);
@@ -116,7 +116,7 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
               justifyContent='space-between'
               alignItems='center'
             >
-              <AppDropzone control={control} name='file' />
+              <AppDropzone control={control} name='photo' />
               {watchFile ? (
                 <img
                   src={watchFile.preview}

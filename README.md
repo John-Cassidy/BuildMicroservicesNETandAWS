@@ -57,3 +57,11 @@ In essence, the API Gateway pattern is a way to hide the underlying system's com
 ### AWS API Gateway
 
 Create API Gateway
+
+## HotelManagement
+
+Create Microservice HotelManagement based on [Course Repository](https://github.com/aussiearef/MicroservicesWithAWS_Dotnet_HotelMan)
+
+![Microservice Chassis Diagram 1](./resources/screenshots/01_MicroserviceChassis_Diagram.png)
+
+![Microservice Chassis Diagram 2](./resources/screenshots/02_MicroserviceChassis_Diagram.png)

@@ -1,9 +1,9 @@
 import { AboutPage } from '../../features/about/AboutPage';
 import { AddHotel } from '../../features/admin/AddHotel';
-import { AdminBooking } from '../../features/admin/AdminBooking';
 import { App } from '../layout/App';
 import { ConfirmRegistration } from '../../features/account/ConfirmRegistration';
 import { HomePage } from '../../features/home/HomePage';
+import { HotelInventory } from '../../features/admin/AdminBooking';
 import { Login } from '../../features/account/Login';
 import { Register } from '../../features/account/Register';
 import { RequireAdmin } from './RequireAdmin';
@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
       {
         element: <RequireAdmin />,
         children: [
-          { path: 'admin', element: <AdminBooking /> },
+          { path: 'admin', element: <HotelInventory /> },
           {
             path: 'admin/add-hotel',
             element: <AddHotel cancelEdit={() => {}} />,
