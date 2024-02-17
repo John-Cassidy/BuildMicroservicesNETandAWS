@@ -1,14 +1,13 @@
 import { Box, Button, Grid, Paper, Typography } from '@mui/material';
 import { FieldValues, useForm } from 'react-hook-form';
-import { useContext, useEffect } from 'react';
 
 import { AppDropzone } from '../../app/components/AppDropzone';
 import { AppSelectList } from '../../app/components/AppSelectList';
 import { AppTextInput } from '../../app/components/AppTextInput';
-import { AuthContext } from '../../app/context/AuthContext';
 import { IHotel } from '../../app/models/hotel';
 import { LoadingButton } from '@mui/lab';
 import { agent } from '../../app/api/agent';
+import { useEffect } from 'react';
 
 const cities = [
   'New York',
@@ -29,11 +28,10 @@ interface IProps {
 }
 
 export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
-  const authContext = useContext(AuthContext);
-  if (!authContext) throw new Error('AuthContext is not defined');
   const {
     control,
     reset,
+    register,
     handleSubmit,
     watch,
     formState: { isDirty, isSubmitting },
@@ -49,20 +47,14 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
     };
   }, [hotel, reset, watchFile, isDirty]);
 
-  const handleSubmitData = async (data: FieldValues) => {
+  const submitForm = async (data: FieldValues) => {
     try {
       let response: any; // IHotel
       if (hotel) {
-        response = await agent.Admin.updateHotel(
-          data,
-          authContext!.idToken!.getJwtToken()
-        );
+        response = await agent.Admin.updateHotel(data);
         console.log(response);
       } else {
-        response = await agent.Admin.createHotel(
-          data,
-          authContext!.idToken!.getJwtToken()
-        );
+        response = await agent.Admin.createHotel(data);
         console.log(response);
       }
       cancelEdit();
@@ -71,41 +63,51 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
     }
   };
 
+  const resetForm = () => {
+    reset();
+    // if (hotel) reset(hotel);
+    // else reset();
+  };
+
   return (
     <Box component={Paper} sx={{ p: 4 }}>
       <Typography variant='h4' gutterBottom sx={{ mb: 4 }}>
         Hotel Details
       </Typography>
-      <form onSubmit={handleSubmit(handleSubmitData)}>
+      <form onSubmit={handleSubmit(submitForm)} noValidate>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={12}>
             <AppTextInput
               control={control}
-              name='hotelName'
               label='Hotel Name'
+              {...register('hotelName', { required: 'Hotel Name is required' })}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <AppTextInput
               control={control}
-              name='hotelRating'
               label='Hotel Rating'
+              {...register('hotelRating', {
+                required: 'Hotel Rating is required',
+              })}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <AppSelectList
               items={cities}
               control={control}
-              name='hotelCity'
               label='Hotel City'
+              {...register('hotelCity', { required: 'Hotel City is required' })}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <AppTextInput
               type='number'
               control={control}
-              name='hotelPrice'
               label='Hotel Price'
+              {...register('hotelPrice', {
+                required: 'Hotel Price is required',
+              })}
             />
           </Grid>
           <Grid item xs={12}>
@@ -134,6 +136,9 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
         <Box display='flex' justifyContent='space-between' sx={{ mt: 3 }}>
           <Button onClick={cancelEdit} variant='contained' color='inherit'>
             Cancel
+          </Button>
+          <Button onClick={resetForm} variant='contained' color='inherit'>
+            Reset
           </Button>
           <LoadingButton
             loading={isSubmitting}

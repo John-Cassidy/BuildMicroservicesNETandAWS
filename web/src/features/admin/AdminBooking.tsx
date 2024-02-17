@@ -1,25 +1,32 @@
 import { Box, Button, Typography } from '@mui/material';
 
-import { AuthContext } from '../../app/context/AuthContext';
-import { Link } from 'react-router-dom';
+import { AddHotel } from './AddHotel';
+import { IHotel } from '../../app/models/hotel';
 import { agent } from '../../app/api/agent';
-import { useContext } from 'react';
+import { useState } from 'react';
 
 export const AdminBooking = () => {
-  const authContext = useContext(AuthContext);
-  if (!authContext) throw new Error('AuthContext is not defined');
+  const [editMode, setEditMode] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState<IHotel | undefined>(
+    undefined
+  );
 
   const testAPI = async () => {
     try {
-      const response = await agent.TestAPI.post(
-        { test: 'test' },
-        authContext!.idToken!.getJwtToken()
-      );
+      const response = await agent.TestAPI.post({ test: 'test' });
       console.log(response);
     } catch (error) {
       console.log(error);
     }
   };
+
+  const cancelEdit = () => {
+    setSelectedHotel(undefined);
+    setEditMode(false);
+  };
+
+  if (editMode)
+    return <AddHotel cancelEdit={cancelEdit} hotel={selectedHotel} />;
 
   return (
     <>
@@ -28,7 +35,13 @@ export const AdminBooking = () => {
           Inventory
         </Typography>
         <Typography variant='body1'>
-          <Link to='/admin/add-hotel'>Create Hotel</Link>
+          <Button
+            onClick={() => setEditMode(true)}
+            variant='contained'
+            color='inherit'
+          >
+            Create Hotel
+          </Button>
           <Button onClick={testAPI} variant='contained' color='inherit'>
             Test API Post
           </Button>

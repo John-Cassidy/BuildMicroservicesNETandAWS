@@ -5,8 +5,8 @@ export const poolData = {
   ClientId: config.COGNITO.CLIENT_ID,
   CognitoDomain: config.COGNITO.COGNITO_DOMAIN,
   TokenScopesArray: ['email', 'openid', 'profile'],
-  RedirectUriSignIn: 'http://localhost:5092/',
-  RedirectUriSignOut: 'http://localhost:5092/',
+  RedirectUriSignIn: 'http://localhost:3000/',
+  RedirectUriSignOut: 'http://localhost:3000/',
   AdvancedSecurityDataCollectionFlag: false,
   Storage: window.localStorage,
 };

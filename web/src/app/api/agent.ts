@@ -1,38 +1,19 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 
+import { getIdToken } from '../context/authHelper';
 import { router } from '../router/Routes';
 import { toast } from 'react-toastify';
 
 axios.defaults.baseURL =
   'https://51tvhlcm7g.execute-api.us-east-1.amazonaws.com/Test';
-// axios.defaults.withCredentials = true;
 
 const responseBody = (response: any) => response;
 
-// axios.interceptors.request.use((config) => {
-//   const token = store.getState().account.user?.token;
-//   if (token) config.headers.Authorization = `Bearer ${token}`;
-//   return config;
-// });
-
-// axios.interceptors.request.use((config) => {
-//   const headers = [
-//     'Content-Type',
-//     // 'X-Amz-Date',
-//     'Authorization',
-//     // 'X-Api-Key',
-//     // 'X-Amz-Security-Token',
-//     // 'Origin',
-//   ];
-//   headers.forEach((header) => {
-//     if (!config.headers[header]) {
-//       console.log(`${header} is not present in the request headers`);
-//     } else {
-//       console.log(`${header} is present in the request headers`);
-//     }
-//   });
-//   return config;
-// });
+axios.interceptors.request.use((config) => {
+  const token = getIdToken()?.getJwtToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 axios.interceptors.response.use(
   (response) => {
@@ -68,53 +49,50 @@ axios.interceptors.response.use(
 const requests = {
   get: (url: string, params?: URLSearchParams) =>
     axios.get(url, { params }).then(responseBody),
-  post: (url: string, body: object, idToken: string) =>
+  post: (url: string, body: object) =>
     axios
       .post(url, body, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
         },
       })
       .then(responseBody),
-  put: (url: string, body: object) => axios.put(url, body).then(responseBody),
+  put: (url: string, body: object) =>
+    axios
+      .put(url, body, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(responseBody),
   delete: (url: string) => axios.delete(url).then(responseBody),
-  createForm: (url: string, data: FormData, idToken: string) =>
+  createForm: (url: string, data: FormData) =>
     axios
       .post(url, data, {
         headers: {
-          Origin: 'http://localhost:3000',
           'Content-type': 'multipart/form-data',
-          Authorization: `Bearer ${idToken}`,
         },
       })
-      .then((response) => {
-        console.log(response);
-        return response;
-      })
       .then(responseBody),
-  putForm: (url: string, data: FormData, idToken: string) =>
+  putForm: (url: string, data: FormData) =>
     axios
       .put(url, data, {
         headers: {
-          Origin: 'http://localhost:3000',
           'Content-type': 'multipart/form-data',
-          Authorization: `Bearer ${idToken}`,
         },
       })
       .then(responseBody),
 };
 
 const Admin = {
-  createHotel: (hotel: any, idToken: string) =>
-    requests.createForm('', createFormData(hotel), idToken),
-  updateHotel: (hotel: any, idToken: string) =>
-    requests.putForm(`/${hotel.id}`, createFormData(hotel), idToken),
+  createHotel: (hotel: any) => requests.createForm('', createFormData(hotel)),
+  updateHotel: (hotel: any) =>
+    requests.putForm(`/${hotel.id}`, createFormData(hotel)),
 };
 
 const TestAPI = {
   get: (id: string) => requests.get(`/${id}`),
-  post: (data: any, idToken: string) => requests.post('', data, idToken),
+  post: (data: any) => requests.post('', data),
   put: (data: any) => requests.put('', data),
   delete: (id: string) => requests.delete(`/${id}`),
 };

@@ -18,6 +18,15 @@ export const AppSelectList = (props: IProps) => {
     <FormControl fullWidth error={!!fieldState.error}>
       <InputLabel>{props.label}</InputLabel>
       <Select value={field.value} label={props.label} onChange={field.onChange}>
+        <MenuItem
+          value=''
+          sx={(theme) => ({
+            height: '2em',
+            backgroundColor: theme.palette.background.paper,
+          })}
+        >
+          <em> </em>
+        </MenuItem>
         {props.items.map((item, index) => (
           <MenuItem value={item} key={index}>
             {item}

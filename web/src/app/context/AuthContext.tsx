@@ -6,6 +6,7 @@ import {
 import React, { PropsWithChildren, useCallback } from 'react';
 
 import { IUser } from '../models/user';
+import { setGetIdToken } from './authHelper';
 
 interface AuthContextType {
   accessToken: CognitoAccessToken | null;
@@ -28,6 +29,11 @@ export const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
     React.useState<CognitoAccessToken | null>(null);
   const [idToken, setIdToken] = React.useState<CognitoIdToken | null>(null);
   const [user, setUser] = React.useState<IUser | null>(null);
+
+  // Update this function inside the AuthProvider component
+  setGetIdToken(() => {
+    return idToken ?? null;
+  });
 
   const setUserDetails = useCallback(
     (attributes: CognitoUserAttribute[] | undefined) => {

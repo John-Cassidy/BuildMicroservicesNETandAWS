@@ -24,11 +24,8 @@ import { poolData } from './cognitoUserPool';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
-console.log(poolData);
-
-const userPool = new CognitoUserPool(poolData);
-
 export const Login = () => {
+  const userPool = new CognitoUserPool(poolData);
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
   const {
