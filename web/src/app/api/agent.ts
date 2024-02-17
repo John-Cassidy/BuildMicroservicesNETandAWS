@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 axios.defaults.baseURL =
   'https://51tvhlcm7g.execute-api.us-east-1.amazonaws.com/Test';
-axios.defaults.withCredentials = true;
+// axios.defaults.withCredentials = true;
 
 const responseBody = (response: any) => response;
 
@@ -15,24 +15,24 @@ const responseBody = (response: any) => response;
 //   return config;
 // });
 
-axios.interceptors.request.use((config) => {
-  const headers = [
-    'Content-Type',
-    // 'X-Amz-Date',
-    'Authorization',
-    // 'X-Api-Key',
-    // 'X-Amz-Security-Token',
-    'Origin',
-  ];
-  headers.forEach((header) => {
-    if (!config.headers[header]) {
-      console.log(`${header} is not present in the request headers`);
-    } else {
-      console.log(`${header} is present in the request headers`);
-    }
-  });
-  return config;
-});
+// axios.interceptors.request.use((config) => {
+//   const headers = [
+//     'Content-Type',
+//     // 'X-Amz-Date',
+//     'Authorization',
+//     // 'X-Api-Key',
+//     // 'X-Amz-Security-Token',
+//     // 'Origin',
+//   ];
+//   headers.forEach((header) => {
+//     if (!config.headers[header]) {
+//       console.log(`${header} is not present in the request headers`);
+//     } else {
+//       console.log(`${header} is present in the request headers`);
+//     }
+//   });
+//   return config;
+// });
 
 axios.interceptors.response.use(
   (response) => {
@@ -68,7 +68,15 @@ axios.interceptors.response.use(
 const requests = {
   get: (url: string, params?: URLSearchParams) =>
     axios.get(url, { params }).then(responseBody),
-  post: (url: string, body: object) => axios.post(url, body).then(responseBody),
+  post: (url: string, body: object, idToken: string) =>
+    axios
+      .post(url, body, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+      })
+      .then(responseBody),
   put: (url: string, body: object) => axios.put(url, body).then(responseBody),
   delete: (url: string) => axios.delete(url).then(responseBody),
   createForm: (url: string, data: FormData, idToken: string) =>
@@ -104,6 +112,13 @@ const Admin = {
     requests.putForm(`/${hotel.id}`, createFormData(hotel), idToken),
 };
 
+const TestAPI = {
+  get: (id: string) => requests.get(`/${id}`),
+  post: (data: any, idToken: string) => requests.post('', data, idToken),
+  put: (data: any) => requests.put('', data),
+  delete: (id: string) => requests.delete(`/${id}`),
+};
+
 const createFormData = (item: any) => {
   const formData = new FormData();
   for (const key in item) {
@@ -114,4 +129,5 @@ const createFormData = (item: any) => {
 
 export const agent = {
   Admin,
+  TestAPI,
 };
