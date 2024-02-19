@@ -6,6 +6,10 @@ Event-Driven Microservices with Dotnet and AWS, Lambda, Docker, Kafka, RabbitMQ
 
 [Course Frontent Github Repo](https://github.com/aussiearef/MicroservicesWithAWS_FrontEnd)
 
+Search this GitHub user's repositorys for all reps with name starting with: MicroservicesWithAWS
+
+[AWS Permissions Repo](https://github.com/aussiearef/MicroservicesWithAWS)
+
 ## Install or update the AWS CLI
 
 [Configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
@@ -124,6 +128,8 @@ dotnet tool update -g Amazon.Lambda.Tools
 dotnet lambda package --project-location ./HotelMagemementLambda/HotelManagement/ --configuration Release --framework net6.0 --output-package ./resources/releases/HotelManagement.zip
 ```
 
+Add environment variable name: bucketName to lambda name: AddHotel to value to S3 bucket
+
 ### Create .NET 6.0 AddHotel Lambda
 
 Upload Zip file
@@ -131,3 +137,27 @@ Edit Runtime Settings to:
 
 - `AssemblyName::Namespace.ClassName::MethodName`
 - HotelManagement::HotelManagement.HotelAdmin::AddHotel
+
+## Storing Data and Files in AWS
+
+S3
+
+- Store Images
+
+Dynamo DB
+
+- Store Hotel Information
+
+Create Role in IAM for Lambda to access (S3, Dynamo DB)
+
+- Execution Role
+
+Name: HotelAdminLambdaExecutionRole
+
+Add Permissions:
+
+- AmazonDynamoDB
+- AWSLambdaBasicExecutionRole
+- AWSLambdaExecute
+
+Replace current Lambda Role with new role: HotelAdminLambdaExecutionRole

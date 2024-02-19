@@ -2,9 +2,12 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Amazon;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
+using Amazon.S3;
+using Amazon.S3.Model;
 using HttpMultipartParser;
 
 [assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
@@ -58,6 +61,10 @@ public class HotelAdmin
             return response;
         }
 
+        await using var fileContentStream = new MemoryStream();
+        await file!.Data.CopyToAsync(fileContentStream);
+        fileContentStream.Position = 0;
+
         // var userId = formData.GetParameterValue("userId");
         var idToken = request.Headers["Authorization"].Replace("Bearer ", "");
 
@@ -77,6 +84,29 @@ public class HotelAdmin
             response.StatusCode = (int)HttpStatusCode.Unauthorized;
             response.Body = JsonSerializer.Serialize(new { Error = "Unauthorized. User not found." });
             return response;
+        }
+
+        var region = Environment.GetEnvironmentVariable("AWS_REGION");
+        var bucketName = Environment.GetEnvironmentVariable("bucketName");
+
+        var client = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
+
+        try
+        {
+            await client.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = bucketName,
+                Key = fileName,
+                InputStream = fileContentStream,
+                AutoCloseStream = true,
+                // ContentType = file?.ContentType
+            });
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
 
         Console.WriteLine("OK.");
