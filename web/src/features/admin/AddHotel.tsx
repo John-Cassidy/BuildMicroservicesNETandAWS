@@ -139,7 +139,7 @@ export const AddHotel = ({ hotel, cancelEdit }: Props) => {
                   />
                 ) : (
                   <img
-                    src={hotel?.photoUrl}
+                    src={hotel?.fileName}
                     alt={hotel?.hotelName}
                     style={{ maxHeight: 200 }}
                   />
