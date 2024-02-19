@@ -3,5 +3,5 @@ export interface IHotel {
   hotelRating: string;
   hotelCity: string;
   hotelPrice: number;
-  photoUrl: string;
+  fileName: string;
 }

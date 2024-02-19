@@ -1,14 +1,19 @@
 import { FormControl, FormHelperText, Typography } from '@mui/material';
-import { UseControllerProps, useController } from 'react-hook-form';
+import {
+  UseControllerProps,
+  useController,
+  useFormContext,
+} from 'react-hook-form';
 
 import { UploadFile } from '@mui/icons-material';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-interface IProps extends UseControllerProps {}
+interface Props extends UseControllerProps {}
 
-export const AppDropzone = (props: IProps) => {
+export const AppDropzone = (props: Props) => {
   const { fieldState, field } = useController({ ...props, defaultValue: null });
+  const { trigger } = useFormContext();
 
   const dzStyles = {
     display: 'flex',
@@ -31,10 +36,13 @@ export const AppDropzone = (props: IProps) => {
         preview: URL.createObjectURL(acceptedFiles[0]),
       });
       field.onChange(acceptedFiles[0]);
+      trigger(props.name);
     },
-    [field]
+    [field, props.name, trigger]
   );
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
   return (
     <div {...getRootProps()}>
       <FormControl
