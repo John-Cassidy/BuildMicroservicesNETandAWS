@@ -7,12 +7,12 @@ import {
 } from '@mui/material';
 import { UseControllerProps, useController } from 'react-hook-form';
 
-interface IProps extends UseControllerProps {
+interface Props extends UseControllerProps {
   label: string;
   items: string[];
 }
 
-export const AppSelectList = (props: IProps) => {
+export const AppSelectList = (props: Props) => {
   const { fieldState, field } = useController({ ...props, defaultValue: '' });
   return (
     <FormControl fullWidth error={!!fieldState.error}>

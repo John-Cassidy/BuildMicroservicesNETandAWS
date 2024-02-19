@@ -1,5 +1,5 @@
 import { Box, Button, Grid, Paper, Typography } from '@mui/material';
-import { FieldValues, useForm } from 'react-hook-form';
+import { FieldValues, FormProvider, useForm } from 'react-hook-form';
 
 import { AppDropzone } from '../../app/components/AppDropzone';
 import { AppSelectList } from '../../app/components/AppSelectList';
@@ -22,12 +22,16 @@ const cities = [
   'Toronto',
 ];
 
-interface IProps {
+interface Props {
   hotel?: IHotel;
   cancelEdit: () => void;
 }
 
-export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
+export const AddHotel = ({ hotel, cancelEdit }: Props) => {
+  const methods = useForm({
+    mode: 'onTouched',
+  });
+
   const {
     control,
     reset,
@@ -35,9 +39,7 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
     handleSubmit,
     watch,
     formState: { isDirty, isSubmitting },
-  } = useForm({
-    mode: 'onTouched',
-  });
+  } = methods;
   const watchFile = watch('photo', null);
 
   useEffect(() => {
@@ -48,6 +50,9 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
   }, [hotel, reset, watchFile, isDirty]);
 
   const submitForm = async (data: FieldValues) => {
+    if (!data.photo) {
+      return;
+    }
     try {
       let response: any; // IHotel
       if (hotel) {
@@ -74,82 +79,92 @@ export const AddHotel = ({ hotel, cancelEdit }: IProps) => {
       <Typography variant='h4' gutterBottom sx={{ mb: 4 }}>
         Hotel Details
       </Typography>
-      <form onSubmit={handleSubmit(submitForm)} noValidate>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={12}>
-            <AppTextInput
-              control={control}
-              label='Hotel Name'
-              {...register('hotelName', { required: 'Hotel Name is required' })}
-            />
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(submitForm)} noValidate>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={12}>
+              <AppTextInput
+                control={control}
+                label='Hotel Name'
+                {...register('hotelName', {
+                  required: 'Hotel Name is required',
+                })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <AppTextInput
+                control={control}
+                label='Hotel Rating'
+                {...register('hotelRating', {
+                  required: 'Hotel Rating is required',
+                })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <AppSelectList
+                items={cities}
+                control={control}
+                label='Hotel City'
+                {...register('hotelCity', {
+                  required: 'Hotel City is required',
+                })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <AppTextInput
+                type='number'
+                control={control}
+                label='Hotel Price'
+                {...register('hotelPrice', {
+                  required: 'Hotel Price is required',
+                })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Box
+                display='flex'
+                justifyContent='space-between'
+                alignItems='center'
+              >
+                <AppDropzone
+                  control={control}
+                  {...register('photo', { required: 'Photo is required' })}
+                  name='photo'
+                />
+                {watchFile ? (
+                  <img
+                    src={watchFile.preview}
+                    alt='preview'
+                    style={{ maxHeight: 200 }}
+                  />
+                ) : (
+                  <img
+                    src={hotel?.photoUrl}
+                    alt={hotel?.hotelName}
+                    style={{ maxHeight: 200 }}
+                  />
+                )}
+              </Box>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <AppTextInput
-              control={control}
-              label='Hotel Rating'
-              {...register('hotelRating', {
-                required: 'Hotel Rating is required',
-              })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <AppSelectList
-              items={cities}
-              control={control}
-              label='Hotel City'
-              {...register('hotelCity', { required: 'Hotel City is required' })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <AppTextInput
-              type='number'
-              control={control}
-              label='Hotel Price'
-              {...register('hotelPrice', {
-                required: 'Hotel Price is required',
-              })}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Box
-              display='flex'
-              justifyContent='space-between'
-              alignItems='center'
+          <Box display='flex' justifyContent='space-between' sx={{ mt: 3 }}>
+            <Button onClick={cancelEdit} variant='contained' color='inherit'>
+              Cancel
+            </Button>
+            <Button onClick={resetForm} variant='contained' color='inherit'>
+              Reset
+            </Button>
+            <LoadingButton
+              loading={isSubmitting}
+              type='submit'
+              variant='contained'
+              color='success'
             >
-              <AppDropzone control={control} name='photo' />
-              {watchFile ? (
-                <img
-                  src={watchFile.preview}
-                  alt='preview'
-                  style={{ maxHeight: 200 }}
-                />
-              ) : (
-                <img
-                  src={hotel?.photoUrl}
-                  alt={hotel?.hotelName}
-                  style={{ maxHeight: 200 }}
-                />
-              )}
-            </Box>
-          </Grid>
-        </Grid>
-        <Box display='flex' justifyContent='space-between' sx={{ mt: 3 }}>
-          <Button onClick={cancelEdit} variant='contained' color='inherit'>
-            Cancel
-          </Button>
-          <Button onClick={resetForm} variant='contained' color='inherit'>
-            Reset
-          </Button>
-          <LoadingButton
-            loading={isSubmitting}
-            type='submit'
-            variant='contained'
-            color='success'
-          >
-            Submit
-          </LoadingButton>
-        </Box>
-      </form>
+              Submit
+            </LoadingButton>
+          </Box>
+        </form>
+      </FormProvider>
     </Box>
   );
 };
