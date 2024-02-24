@@ -138,7 +138,7 @@ Upload Zip file
 Edit Runtime Settings to:
 
 - `AssemblyName::Namespace.ClassName::MethodName`
-- HotelManagement::HotelManagement.HotelAdmin::AddHotel
+- HotelManagement::HotelManagement.HotelAdmin::FunctionHandler
 
 ## Storing Data and Files in AWS
 
