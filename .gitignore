@@ -5,6 +5,8 @@
 
 # User-specific folders
 .developernotes/
+aws-lambda-tools-defaults.json
+thunder-environment.json
 
 # User-specific files
 *.rsuser

@@ -5,8 +5,7 @@ import { router } from '../router/Routes';
 import { toast } from 'react-toastify';
 
 axios.defaults.baseURL =
-  // 'https://51tvhlcm7g.execute-api.us-east-1.amazonaws.com/Test';
-  'https://51tvhlcm7g.execute-api.us-east-1.amazonaws.com/Test/{admin+}';
+  'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
 
 const responseBody = (response: any) => response;
 
@@ -92,7 +91,8 @@ const Admin = {
 };
 
 const TestAPI = {
-  get: (id: string) => requests.get(`/${id}`),
+  get: () => requests.get(''),
+  getbyId: (id: string) => requests.get(`/${id}`),
   post: (data: any) => requests.post('', data),
   put: (data: any) => requests.put('', data),
   delete: (id: string) => requests.delete(`/${id}`),
