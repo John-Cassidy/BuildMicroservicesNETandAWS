@@ -13,7 +13,8 @@ export const HotelInventory = () => {
 
   const testAPI = async () => {
     try {
-      const response = await agent.TestAPI.post({ test: 'test' });
+      // const response = await agent.TestAPI.post({ test: 'test' });
+      const response = await agent.TestAPI.get();
       console.log(response);
     } catch (error) {
       console.log(error);
