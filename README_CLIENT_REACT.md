@@ -190,4 +190,25 @@ const signUp = (
 
 [Amplify Dev Center / Getting Started](https://ui.docs.amplify.aws/react/getting-started/installation)
 
-## NOTES
+## Domain Boundaries of Hotel Entity
+
+Hotel Entity has 3 Domain Boundaries:
+
+- Hotel Management Domain
+
+  - View List of Hotels
+  - Add Hotel
+  - Edit Hotel
+  - Delete Hotel
+
+- Booking Managment Domain
+
+  - View Bookings
+  - Approve Bookings
+
+- Customer Dommain
+
+  - Search Hotels (may be separate microservice)
+  - Book Hotel (may include multiple microservices for: shopping cart, payment, loyalty, applying coupons)
+
+![Domain Boundaries of Hotel Entity](./resources/screenshots/03_Domain_Boundaries.png)

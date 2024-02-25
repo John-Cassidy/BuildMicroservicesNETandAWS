@@ -6,6 +6,7 @@ using System.Text.Json;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
@@ -25,7 +26,7 @@ public class HotelAdmin
     private string _validIssuer;
     private string _validAudience;
 
-    public HotelAdmin() 
+    public HotelAdmin()
     {
         _configurations = new ConfigurationBuilder()
              .SetBasePath(Directory.GetCurrentDirectory())
@@ -61,8 +62,10 @@ public class HotelAdmin
         }
 
         // 1. Return if no bearer token found
-        if (string.IsNullOrWhiteSpace(request.Headers["Authorization"])) {
-            return new APIGatewayProxyResponse {
+        if (string.IsNullOrWhiteSpace(request.Headers["Authorization"]))
+        {
+            return new APIGatewayProxyResponse
+            {
                 StatusCode = (int)HttpStatusCode.Unauthorized
             };
         }
@@ -76,8 +79,10 @@ public class HotelAdmin
         var claims = claimPrincipal.Claims.Select(item => new KeyValuePair<string, string>(item.Type, item.Value)).ToList();
 
         // 3. Check for Admin role
-        if (!isAdminUser) {
-            return new APIGatewayProxyResponse {
+        if (!isAdminUser)
+        {
+            return new APIGatewayProxyResponse
+            {
                 StatusCode = (int)HttpStatusCode.Forbidden
             };
         }
@@ -86,7 +91,8 @@ public class HotelAdmin
         var token = new JwtSecurityToken(bearerToken.Replace("Bearer ", ""));
         var userId = token.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
 
-        if (userId is null) {
+        if (userId is null)
+        {
             response.StatusCode = (int)HttpStatusCode.Unauthorized;
             response.Body = JsonSerializer.Serialize(new { Error = "Unauthorized. User not found." });
             return response;
@@ -94,15 +100,23 @@ public class HotelAdmin
 
         return request.HttpMethod.ToUpper() switch
         {
-            "GET" => HandleGet(request, response, userId),
+            "GET" => await HandleGet(request, response, userId),
             "POST" => await HandlePost(request, response, userId),
             _ => response
         };
     }
 
-    private APIGatewayProxyResponse HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string userId)
+    private async Task<APIGatewayProxyResponse> HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string userId)
     {
-        response.Body = "Get from HotelAdmin";
+        var region = Environment.GetEnvironmentVariable("AWS_REGION");
+        var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
+        using var dbContext = new DynamoDBContext(dbClient);
+
+        var hotels = await dbContext.ScanAsync<Hotel>(new[] { new ScanCondition("UserId", ScanOperator.Equal, userId) })
+            .GetRemainingAsync();
+
+        response.Body = JsonSerializer.Serialize(new { Hotels = hotels });
+
         return response;
     }
 
@@ -123,7 +137,8 @@ public class HotelAdmin
             var formData = await MultipartFormDataParser.ParseAsync(memoryStream).ConfigureAwait(false);
 
             // Check if any form data fields were found
-            if (!formData.Parameters.Any()) {
+            if (!formData.Parameters.Any())
+            {
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.Body = JsonSerializer.Serialize(new { Error = "Bad Request. No form data fields were found." });
                 return response;
@@ -143,7 +158,8 @@ public class HotelAdmin
             sbResponse.AppendLine($"Hotel Price: {hotelPrice}");
             sbResponse.AppendLine($"File Name: {fileName} with ContentType: {file?.ContentType}");
 
-            if (fileName is null || string.IsNullOrEmpty(hotelName) || string.IsNullOrEmpty(hotelRating) || string.IsNullOrEmpty(hotelCity) || string.IsNullOrEmpty(hotelPrice)) {
+            if (fileName is null || string.IsNullOrEmpty(hotelName) || string.IsNullOrEmpty(hotelRating) || string.IsNullOrEmpty(hotelCity) || string.IsNullOrEmpty(hotelPrice))
+            {
                 StringBuilder sbBadRequest = new StringBuilder();
                 sbBadRequest.AppendLine("Bad Request. The following properties are required: ");
                 if (string.IsNullOrEmpty(hotelName))
@@ -177,7 +193,8 @@ public class HotelAdmin
             var client = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
             var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
 
-            await client.PutObjectAsync(new Amazon.S3.Model.PutObjectRequest {
+            await client.PutObjectAsync(new Amazon.S3.Model.PutObjectRequest
+            {
                 BucketName = bucketName,
                 Key = fileName,
                 InputStream = fileContentStream,
@@ -187,7 +204,8 @@ public class HotelAdmin
 
             sbResponse.AppendLine("file uploaded to S3");
 
-            var hotel = new Hotel {
+            var hotel = new Hotel
+            {
                 UserId = userId,
                 Id = Guid.NewGuid().ToString(),
                 Name = hotelName,
