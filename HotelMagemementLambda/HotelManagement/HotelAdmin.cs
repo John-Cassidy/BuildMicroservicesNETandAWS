@@ -11,6 +11,9 @@ using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.S3;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
+using AutoMapper;
 using HotelManagement.Models;
 using HttpMultipartParser;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +26,7 @@ public class HotelAdmin
 {
     private readonly IConfigurationRoot _configurations;
     private readonly string _s3BucketName;
+    private readonly string _snsTopicArn;
     private string _validIssuer;
     private string _validAudience;
 
@@ -38,6 +42,7 @@ public class HotelAdmin
         string cognitoUserPoolId = _configurations["AppSettings:Cognito:UserPoolId"];
         string cognitoAWSRegion = _configurations["AppSettings:Cognito:AWSRegion"];
         _s3BucketName = _configurations["AppSettings:S3:BucketName"];
+        _snsTopicArn = _configurations["AppSettings:SNS:TopicArn"];
 
         _validIssuer = $"https://cognito-idp.{cognitoAWSRegion}.amazonaws.com/{cognitoUserPoolId}";
         _validAudience = appClientId;
@@ -246,6 +251,27 @@ public class HotelAdmin
             await dbContext.SaveAsync(hotel);
 
             sbResponse.AppendLine("hotel saved to DynamoDB");
+
+            var mapperConfig = new MapperConfiguration(cfg =>
+                cfg.CreateMap<Hotel, HotelCreatedEvent>()
+                    .ForMember(dest => dest.CreationDateTime,
+                        opt => opt.MapFrom(src => DateTime.Now))
+            );
+
+            var mapper = new Mapper(mapperConfig);
+
+            var hotelCreatedEvent = mapper.Map<Hotel, HotelCreatedEvent>(hotel);
+
+
+            var snsClient = new AmazonSimpleNotificationServiceClient(RegionEndpoint.GetBySystemName(region));
+            var publishResponse = await snsClient.PublishAsync(new PublishRequest
+                       {
+                Message = JsonSerializer.Serialize(hotelCreatedEvent),
+                TopicArn = _snsTopicArn
+            });
+
+            sbResponse.AppendLine($"SNS message sent. MessageId: {publishResponse.MessageId}");
+
         } catch (AmazonS3Exception e) {
             // Handle exception related to AWS S3 service
             Console.WriteLine($"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object");

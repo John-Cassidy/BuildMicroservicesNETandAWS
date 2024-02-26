@@ -13,6 +13,7 @@
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.1" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.301.13" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.305.28" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.301" />
     <PackageReference Include="HttpMultipartParser" Version="8.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.1" />

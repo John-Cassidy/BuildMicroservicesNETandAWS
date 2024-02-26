@@ -38,6 +38,9 @@ notepad credentials
 
 ## Add Tag Name to all AWS Resources for tracking purposes
 
+Tag Name: Project
+Tag Value: hotel-booking
+
 ### To list all resources that have a tag name of "Project" and value of "hotel-booking", you can use the AWS CLI list-tags-for-resource command
 
 The AWS CLI command provides a simple way to list tags for a single resource. For listing resources across multiple services, AWS Resource Groups Tagging API or AWS Resource Explorer would be more suitable options.
@@ -168,18 +171,34 @@ Replace current Lambda Role with new role: HotelAdminLambdaExecutionRole
 
 To test the HandlePost method locally, you can use a tool like Postman or curl to send a POST request to your local server. Here's a step-by-step guide on how to do this:
 
-1. Run your application locally: You can use a tool like AWS SAM CLI or AWS .NET Mock Lambda Test Tool to run your Lambda function locally.
-2. Create a POST request: Using a tool like Postman, you can create a POST request. The URL will be your localhost URL (for example, http://localhost:3000/) and the route you've defined for your HandlePost method.
-3. Set the headers: In your POST request, set the Content-Type header to multipart/form-data.
-4. Set the body: In the body of your POST request, you'll need to include the data you're testing with. In Postman, you can select the 'form-data' option and then input the key-value pairs for your data. Make sure to include a file in the 'file' key.
-5. Send the request: Once you've set up your request, you can send it. Your local server should process the request and you'll be able to see the response in Postman.
+1. `Run your application locally`: You can use a tool like AWS SAM CLI or AWS .NET Mock Lambda Test Tool to run your Lambda function locally.
+2. `Create a POST request`: Using a tool like Postman, you can create a POST request. The URL will be your localhost URL (for example, http://localhost:3000/) and the route you've defined for your HandlePost method.
+3. `Set the headers`: In your POST request, set the Content-Type header to multipart/form-data.
+4. `Set the body`: In the body of your POST request, you'll need to include the data you're testing with. In Postman, you can select the 'form-data' option and then input the key-value pairs for your data. Make sure to include a file in the 'file' key.
+5. `Send the request`: Once you've set up your request, you can send it. Your local server should process the request and you'll be able to see the response in Postman.
    Remember to replace the AWS services (like `S3` and `DynamoDB`) with local alternatives or mock them for local testing. For example, you can use Amazon DynamoDB Local for testing DynamoDB operations locally.
 
 There are several local alternatives to Amazon `S3` that you can use for testing purposes:
 
-1. MinIO: MinIO is a high-performance, AWS S3 compatible object storage server designed for AI and ML workloads. It is API compatible with Amazon S3 cloud storage service. You can use MinIO to test your S3 operations locally. You can find more about it here.
-2. LocalStack: LocalStack is a fully functional local AWS cloud stack that allows you to develop and test your cloud and Serverless apps offline. It provides an easy-to-use test/mocking framework for developing Cloud applications and includes support for S3. You can find more about it here.
-3. S3Ninja: S3Ninja emulates the S3 API for development and testing purposes. It supports creating buckets, storing files, and serving them directly from a local server. You can find more about it here.
+1. `MinIO`: MinIO is a high-performance, AWS S3 compatible object storage server designed for AI and ML workloads. It is API compatible with Amazon S3 cloud storage service. You can use MinIO to test your S3 operations locally. You can find more about it here.
+2. `LocalStack`: LocalStack is a fully functional local AWS cloud stack that allows you to develop and test your cloud and Serverless apps offline. It provides an easy-to-use test/mocking framework for developing Cloud applications and includes support for S3. You can find more about it here.
+3. `S3Ninja`: S3Ninja emulates the S3 API for development and testing purposes. It supports creating buckets, storing files, and serving them directly from a local server. You can find more about it here.
    Remember, these tools emulate the S3 API and are great for testing, but they may not have 100% feature parity with Amazon S3. Always test your application with the real Amazon S3 service before deploying to production.
 
 [Setting up DynamoDB local (downloadable version)](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)
+
+## CQRS Pattern
+
+![CQRS](./resources/screenshots/04_CQRS.png)
+
+![Example Use Case](./resources/screenshots/05_Example_CQRS.png)
+
+### Fan Out Pattern / Idempotent Consumer Pattern
+
+![Patterns](./resources/screenshots/06_Fanout_Idempotent_Patterns_SNS.png)
+
+### Create SNS
+
+### Create OpenSearch Service (Elastic Search)
+
+### Create DynamoDB table to store HotelCreatedEvent Message Ids
