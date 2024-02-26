@@ -13,11 +13,11 @@ using Nest;
 
 namespace HotelCreatedEventHandler;
 
-public class HotelCreatedEventHandler
+public class HotelCreatedEvent
 {
     private readonly IConfigurationRoot _configurations;
 
-    public HotelCreatedEventHandler()
+    public HotelCreatedEvent()
     {
         _configurations = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
