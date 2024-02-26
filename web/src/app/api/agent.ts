@@ -85,6 +85,9 @@ const requests = {
 };
 
 const Admin = {
+  getImage: (fileName: string) =>
+    requests.get(`image`, new URLSearchParams({ fileName })),
+  getHotels: () => requests.get(''),
   createHotel: (hotel: any) => requests.createForm('', createFormData(hotel)),
   updateHotel: (hotel: any) =>
     requests.putForm(`/${hotel.id}`, createFormData(hotel)),
