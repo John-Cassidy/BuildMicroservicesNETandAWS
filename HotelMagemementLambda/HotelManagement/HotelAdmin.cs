@@ -6,10 +6,14 @@ using System.Text.Json;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.S3;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
+using AutoMapper;
 using HotelManagement.Models;
 using HttpMultipartParser;
 using Microsoft.Extensions.Configuration;
@@ -22,10 +26,11 @@ public class HotelAdmin
 {
     private readonly IConfigurationRoot _configurations;
     private readonly string _s3BucketName;
+    private readonly string _snsTopicArn;
     private string _validIssuer;
     private string _validAudience;
 
-    public HotelAdmin() 
+    public HotelAdmin()
     {
         _configurations = new ConfigurationBuilder()
              .SetBasePath(Directory.GetCurrentDirectory())
@@ -37,6 +42,7 @@ public class HotelAdmin
         string cognitoUserPoolId = _configurations["AppSettings:Cognito:UserPoolId"];
         string cognitoAWSRegion = _configurations["AppSettings:Cognito:AWSRegion"];
         _s3BucketName = _configurations["AppSettings:S3:BucketName"];
+        _snsTopicArn = _configurations["AppSettings:SNS:TopicArn"];
 
         _validIssuer = $"https://cognito-idp.{cognitoAWSRegion}.amazonaws.com/{cognitoUserPoolId}";
         _validAudience = appClientId;
@@ -52,7 +58,7 @@ public class HotelAdmin
 
         response.Headers.Add("Access-Control-Allow-Origin", "*");
         response.Headers.Add("Access-Control-Allow-Headers", "*");
-        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET,POST");
+        //response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET,POST"); // added in each handler
         response.Headers.Add("Content-Type", "application/json");
 
         if (request.HttpMethod.ToUpper() == "OPTIONS")
@@ -61,8 +67,10 @@ public class HotelAdmin
         }
 
         // 1. Return if no bearer token found
-        if (string.IsNullOrWhiteSpace(request.Headers["Authorization"])) {
-            return new APIGatewayProxyResponse {
+        if (string.IsNullOrWhiteSpace(request.Headers["Authorization"]))
+        {
+            return new APIGatewayProxyResponse
+            {
                 StatusCode = (int)HttpStatusCode.Unauthorized
             };
         }
@@ -76,8 +84,10 @@ public class HotelAdmin
         var claims = claimPrincipal.Claims.Select(item => new KeyValuePair<string, string>(item.Type, item.Value)).ToList();
 
         // 3. Check for Admin role
-        if (!isAdminUser) {
-            return new APIGatewayProxyResponse {
+        if (!isAdminUser)
+        {
+            return new APIGatewayProxyResponse
+            {
                 StatusCode = (int)HttpStatusCode.Forbidden
             };
         }
@@ -86,7 +96,8 @@ public class HotelAdmin
         var token = new JwtSecurityToken(bearerToken.Replace("Bearer ", ""));
         var userId = token.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
 
-        if (userId is null) {
+        if (userId is null)
+        {
             response.StatusCode = (int)HttpStatusCode.Unauthorized;
             response.Body = JsonSerializer.Serialize(new { Error = "Unauthorized. User not found." });
             return response;
@@ -94,25 +105,60 @@ public class HotelAdmin
 
         return request.HttpMethod.ToUpper() switch
         {
-            "GET" => HandleGet(request, response, userId),
+            "GET" => request.Resource.Contains("image") && request.QueryStringParameters.ContainsKey("fileName")
+                ? await HandleGetImage(request, response, request.QueryStringParameters["fileName"])
+                : await HandleGet(request, response, userId),
             "POST" => await HandlePost(request, response, userId),
             _ => response
         };
     }
 
-    private APIGatewayProxyResponse HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string userId)
+    private async Task<APIGatewayProxyResponse> HandleGetImage(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string fileName) {
+        var region = Environment.GetEnvironmentVariable("AWS_REGION");
+        var bucketName = _s3BucketName;
+        var client = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
+
+        using var getObjectResponse = await client.GetObjectAsync(bucketName, fileName);
+        using var responseStream = getObjectResponse.ResponseStream;
+        var image = new MemoryStream();
+        await responseStream.CopyToAsync(image);
+        image.Position = 0;
+
+        response.Body = Convert.ToBase64String(image.ToArray());
+        response.Headers["Content-Type"] = getObjectResponse.Headers.ContentType;
+        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET");
+
+        return response;
+    }
+
+    private async Task<APIGatewayProxyResponse> HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string userId)
     {
-        response.Body = "Get from HotelAdmin";
+        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET,POST");
+
+        var region = Environment.GetEnvironmentVariable("AWS_REGION");
+        var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
+        using var dbContext = new DynamoDBContext(dbClient);
+
+        var hotels = await dbContext.ScanAsync<Hotel>(new[] { new ScanCondition("UserId", ScanOperator.Equal, userId) })
+            .GetRemainingAsync();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        response.Body = JsonSerializer.Serialize(new { Hotels = hotels }, options);
+
+
         return response;
     }
 
     private async Task<APIGatewayProxyResponse> HandlePost(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string userId)
     {
+        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET,POST");
         StringBuilder sbResponse = new StringBuilder();
         try
         {
-            // add await to simulate async operation
-            //await Task.Delay(100);
             var bodyContent = request.IsBase64Encoded
            ? Convert.FromBase64String(request.Body)
            : Encoding.UTF8.GetBytes(request.Body);
@@ -122,8 +168,8 @@ public class HotelAdmin
             await using var memoryStream = new MemoryStream(bodyContent);
             var formData = await MultipartFormDataParser.ParseAsync(memoryStream).ConfigureAwait(false);
 
-            // Check if any form data fields were found
-            if (!formData.Parameters.Any()) {
+            if (!formData.Parameters.Any())
+            {
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.Body = JsonSerializer.Serialize(new { Error = "Bad Request. No form data fields were found." });
                 return response;
@@ -137,13 +183,8 @@ public class HotelAdmin
             var file = formData.Files.FirstOrDefault();
             var fileName = file?.FileName;
 
-            sbResponse.AppendLine($"Hotel Name: {hotelName}");
-            sbResponse.AppendLine($"Hotel Rating: {hotelRating}");
-            sbResponse.AppendLine($"Hotel City: {hotelCity}");
-            sbResponse.AppendLine($"Hotel Price: {hotelPrice}");
-            sbResponse.AppendLine($"File Name: {fileName} with ContentType: {file?.ContentType}");
-
-            if (fileName is null || string.IsNullOrEmpty(hotelName) || string.IsNullOrEmpty(hotelRating) || string.IsNullOrEmpty(hotelCity) || string.IsNullOrEmpty(hotelPrice)) {
+            if (file is null || fileName is null || string.IsNullOrEmpty(hotelName) || string.IsNullOrEmpty(hotelRating) || string.IsNullOrEmpty(hotelCity) || string.IsNullOrEmpty(hotelPrice))
+            {
                 StringBuilder sbBadRequest = new StringBuilder();
                 sbBadRequest.AppendLine("Bad Request. The following properties are required: ");
                 if (string.IsNullOrEmpty(hotelName))
@@ -154,7 +195,7 @@ public class HotelAdmin
                     sbBadRequest.AppendLine("hotelCity");
                 if (string.IsNullOrEmpty(hotelPrice))
                     sbBadRequest.AppendLine("hotelPrice");
-                if (fileName is null)
+                if (file is null || fileName is null)
                     sbBadRequest.AppendLine("photo");
 
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -162,11 +203,13 @@ public class HotelAdmin
                 return response;
             }
 
-            await using var fileContentStream = new MemoryStream();
-            await file!.Data.CopyToAsync(fileContentStream);
-            fileContentStream.Position = 0;
-
-            sbResponse.AppendLine("file copied to memory stream");
+            sbResponse.AppendLine($"Hotel Name: {hotelName}");
+            sbResponse.AppendLine($"Hotel Rating: {hotelRating}");
+            sbResponse.AppendLine($"Hotel City: {hotelCity}");
+            sbResponse.AppendLine($"Hotel Price: {hotelPrice}");
+            sbResponse.AppendLine($"File Name: {fileName}");
+            sbResponse.AppendLine($"File ContentType: {file!.ContentType}");
+            sbResponse.AppendLine($"File Size: {file!.Data.Length} bytes");
 
             var region = Environment.GetEnvironmentVariable("AWS_REGION");
             var bucketName = _s3BucketName;
@@ -177,17 +220,24 @@ public class HotelAdmin
             var client = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
             var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
 
-            await client.PutObjectAsync(new Amazon.S3.Model.PutObjectRequest {
+            await using var fileStream = new MemoryStream();
+            await file!.Data.CopyToAsync(fileStream);
+            fileStream.Position = 0;
+
+            await client.PutObjectAsync(new Amazon.S3.Model.PutObjectRequest
+            {
                 BucketName = bucketName,
                 Key = fileName,
-                InputStream = fileContentStream,
+                InputStream = fileStream,
                 AutoCloseStream = true,
-                ContentType = file?.ContentType
+                ContentType = file?.ContentType,
+                CannedACL = S3CannedACL.PublicRead
             });
 
             sbResponse.AppendLine("file uploaded to S3");
 
-            var hotel = new Hotel {
+            var hotel = new Hotel
+            {
                 UserId = userId,
                 Id = Guid.NewGuid().ToString(),
                 Name = hotelName,
@@ -201,12 +251,38 @@ public class HotelAdmin
             await dbContext.SaveAsync(hotel);
 
             sbResponse.AppendLine("hotel saved to DynamoDB");
-        }
-        catch (Exception e)
+
+            var mapperConfig = new MapperConfiguration(cfg =>
+                cfg.CreateMap<Hotel, HotelCreatedEvent>()
+                    .ForMember(dest => dest.CreationDateTime,
+                        opt => opt.MapFrom(src => DateTime.Now))
+            );
+
+            var mapper = new Mapper(mapperConfig);
+
+            var hotelCreatedEvent = mapper.Map<Hotel, HotelCreatedEvent>(hotel);
+
+
+            var snsClient = new AmazonSimpleNotificationServiceClient(RegionEndpoint.GetBySystemName(region));
+            var publishResponse = await snsClient.PublishAsync(new PublishRequest
+                       {
+                Message = JsonSerializer.Serialize(hotelCreatedEvent),
+                TopicArn = _snsTopicArn
+            });
+
+            sbResponse.AppendLine($"SNS message sent. MessageId: {publishResponse.MessageId}");
+
+        } catch (AmazonS3Exception e) {
+            // Handle exception related to AWS S3 service
+            Console.WriteLine($"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object");
+            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            response.Body = $"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object";
+            throw;
+        } catch (Exception e)
         {
             Console.WriteLine(e);
             response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            response.Body = e.Message + "STACKTRACE: " + e.StackTrace;
+            response.Body = e.Message;
             throw;
         }
         response.StatusCode = (int)HttpStatusCode.OK;

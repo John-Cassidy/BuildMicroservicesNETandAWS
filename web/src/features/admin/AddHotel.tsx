@@ -4,13 +4,14 @@ import { FieldValues, FormProvider, useForm } from 'react-hook-form';
 import { AppDropzone } from '../../app/components/AppDropzone';
 import { AppSelectList } from '../../app/components/AppSelectList';
 import { AppTextInput } from '../../app/components/AppTextInput';
-import { IHotel } from '../../app/models/hotel';
+import { Hotel } from '../../app/models/hotel';
 import { LoadingButton } from '@mui/lab';
 import { agent } from '../../app/api/agent';
 import { useEffect } from 'react';
 
 const cities = [
   'New York',
+  'Boston',
   'London',
   'Tokyo',
   'Paris',
@@ -23,7 +24,7 @@ const cities = [
 ];
 
 interface Props {
-  hotel?: IHotel;
+  hotel?: Hotel;
   cancelEdit: () => void;
 }
 
@@ -140,7 +141,7 @@ export const AddHotel = ({ hotel, cancelEdit }: Props) => {
                 ) : (
                   <img
                     src={hotel?.fileName}
-                    alt={hotel?.hotelName}
+                    alt={hotel?.name}
                     style={{ maxHeight: 200 }}
                   />
                 )}
