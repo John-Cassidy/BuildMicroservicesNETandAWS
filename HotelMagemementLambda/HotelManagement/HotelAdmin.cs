@@ -106,14 +106,14 @@ public class HotelAdmin
         return request.HttpMethod.ToUpper() switch
         {
             "GET" => request.Resource.Contains("image") && request.QueryStringParameters.ContainsKey("fileName")
-                ? await HandleGetImage(request, response, request.QueryStringParameters["fileName"])
-                : await HandleGet(request, response, userId),
-            "POST" => await HandlePost(request, response, userId),
+                ? await HandleGetImage(request, response, context, request.QueryStringParameters["fileName"])
+                : await HandleGet(request, response, context, userId),
+            "POST" => await HandlePost(request, response, context, userId),
             _ => response
         };
     }
 
-    private async Task<APIGatewayProxyResponse> HandleGetImage(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string fileName) {
+    private async Task<APIGatewayProxyResponse> HandleGetImage(APIGatewayProxyRequest request, APIGatewayProxyResponse response, ILambdaContext context, string fileName) {
         var region = Environment.GetEnvironmentVariable("AWS_REGION");
         var bucketName = _s3BucketName;
         var client = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
@@ -131,7 +131,7 @@ public class HotelAdmin
         return response;
     }
 
-    private async Task<APIGatewayProxyResponse> HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string userId)
+    private async Task<APIGatewayProxyResponse> HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, ILambdaContext context, string userId)
     {
         response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET,POST");
 
@@ -153,7 +153,7 @@ public class HotelAdmin
         return response;
     }
 
-    private async Task<APIGatewayProxyResponse> HandlePost(APIGatewayProxyRequest request, APIGatewayProxyResponse response, string userId)
+    private async Task<APIGatewayProxyResponse> HandlePost(APIGatewayProxyRequest request, APIGatewayProxyResponse response, ILambdaContext context, string userId)
     {
         response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET,POST");
         StringBuilder sbResponse = new StringBuilder();
@@ -163,7 +163,7 @@ public class HotelAdmin
            ? Convert.FromBase64String(request.Body)
            : Encoding.UTF8.GetBytes(request.Body);
 
-            Console.WriteLine($"Request size after decode: {bodyContent.Length}");
+            context.Logger.LogLine($"Request size after decode: {bodyContent.Length}");
 
             await using var memoryStream = new MemoryStream(bodyContent);
             var formData = await MultipartFormDataParser.ParseAsync(memoryStream).ConfigureAwait(false);
@@ -274,13 +274,25 @@ public class HotelAdmin
 
         } catch (AmazonS3Exception e) {
             // Handle exception related to AWS S3 service
-            Console.WriteLine($"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object");
+            context.Logger.LogLine($"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object");
             response.StatusCode = (int)HttpStatusCode.InternalServerError;
             response.Body = $"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object";
             throw;
+        } catch (AmazonDynamoDBException e) {
+            // Handle exception related to AWS DynamoDB service
+            context.Logger.LogLine($"AmazonDynamoDBException encountered. Message:'{e.Message}' when saving to DynamoDB");
+            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            response.Body = $"AmazonDynamoDBException encountered. Message:'{e.Message}' when saving to DynamoDB";
+            throw;
+        } catch (AmazonSimpleNotificationServiceException e) {
+            // Handle exception related to AWS SNS service
+            context.Logger.LogLine($"AmazonSimpleNotificationServiceException encountered. Message:'{e.Message}' when publishing a message");
+            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            response.Body = $"AmazonSimpleNotificationServiceException encountered. Message:'{e.Message}' when publishing a message";
+            throw;
         } catch (Exception e)
         {
-            Console.WriteLine(e);
+            context.Logger.LogLine($"Message: {e.Message}, StackTrace: {e.StackTrace}");
             response.StatusCode = (int)HttpStatusCode.InternalServerError;
             response.Body = e.Message;
             throw;
