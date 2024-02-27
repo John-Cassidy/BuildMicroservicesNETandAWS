@@ -7,7 +7,7 @@ using System.Text.Json;
 using Amazon.DynamoDBv2.DocumentModel;
 using HotelCreatedEventHandler.Models;
 using Microsoft.Extensions.Configuration;
-using Nest;
+using OpenSearch.Client;
 
 [assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
@@ -23,7 +23,7 @@ public class HotelCreatedEvent
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables()
-                .Build();        
+                .Build();
     }
 
     public async Task FunctionHandler(SNSEvent snsEvent, ILambdaContext context)
@@ -41,19 +41,22 @@ public class HotelCreatedEvent
             .DefaultIndex(indexName)
             .DefaultMappingFor<Hotel>(m => m.IdProperty(p => p.Id));
 
-        var esClient = new ElasticClient(connectionSettings);
+        var esClient = new OpenSearchClient(connectionSettings);
 
-        if (!(await esClient.Indices.ExistsAsync(indexName)).Exists) {
+        if (!(await esClient.Indices.ExistsAsync(indexName)).Exists)
+        {
             await esClient.Indices.CreateAsync(indexName);
         }
 
-        foreach (var eventRecord in snsEvent.Records) {
-            
+        foreach (var eventRecord in snsEvent.Records)
+        {
+
             var eventId = eventRecord.Sns.MessageId;
             var foundItem = await table.GetItemAsync(eventId);
-            if ( foundItem == null)
+            if (foundItem == null)
             {
-                await table.PutItemAsync(new Document{
+                await table.PutItemAsync(new Document
+                {
                     ["eventId"] = eventId
                 });
             }
