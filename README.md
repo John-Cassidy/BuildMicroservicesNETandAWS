@@ -201,4 +201,17 @@ There are several local alternatives to Amazon `S3` that you can use for testing
 
 ### Create OpenSearch Service (Elastic Search)
 
+```bash
+# QUERY from OpenSearch Dashboard > Dev Tools > Console
+GET _search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+DELETE /index_name
+# DELETE
+
+```
+
 ### Create DynamoDB table to store HotelCreatedEvent Message Ids
