@@ -197,8 +197,35 @@ There are several local alternatives to Amazon `S3` that you can use for testing
 
 ![Patterns](./resources/screenshots/06_Fanout_Idempotent_Patterns_SNS.png)
 
-### Create SNS
+## Create SNS
 
-### Create OpenSearch Service (Elastic Search)
+## Create OpenSearch Service (Elastic Search)
 
-### Create DynamoDB table to store HotelCreatedEvent Message Ids
+```bash
+# QUERY from OpenSearch Dashboard > Dev Tools > Console
+GET _search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+DELETE /index_name
+# DELETE
+
+```
+
+## Create DynamoDB table to store HotelCreatedEvent Message Ids
+
+`This table will store eventIds that were processed by HotelCreatedEventHandler Lambda`
+
+## Create HotelCreatedEventHandler Lambda
+
+`This Lambda will:`
+
+- Setup lambda to subscribe to SNS topic HotelCreatedEvent
+- insert eventId from topic into dynamodb
+- insert message from topic into opensearch
+
+## Create SearchApi Microservice
+
+`This microservice provides an endpoint for customer to search OpenSearch for hotels`
