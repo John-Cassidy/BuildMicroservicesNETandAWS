@@ -7,7 +7,7 @@ using System.Text.Json;
 using Amazon.DynamoDBv2.DocumentModel;
 using HotelCreatedEventHandler.Models;
 using Microsoft.Extensions.Configuration;
-using OpenSearch.Client;
+using Amazon;
 
 [assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
@@ -28,41 +28,26 @@ public class HotelCreatedEvent
 
     public async Task FunctionHandler(SNSEvent snsEvent, ILambdaContext context)
     {
-        var dbClient = new AmazonDynamoDBClient();
-        var table = Table.LoadTable(dbClient, "hotel-created-event-ids");
-
-        string domainEndpoint = _configurations["AppSettings:ElasticSearch:DomainEndpoint"];
-        string username = _configurations["AppSettings:ElasticSearch:Username"];
-        string password = _configurations["AppSettings:ElasticSearch:Password"];
-        string indexName = _configurations["AppSettings:ElasticSearch:IndexName"];
-
-        var connectionSettings = new ConnectionSettings(new Uri(domainEndpoint))
-            .BasicAuthentication(username, password)
-            .DefaultIndex(indexName)
-            .DefaultMappingFor<Hotel>(m => m.IdProperty(p => p.Id));
-
-        var esClient = new OpenSearchClient(connectionSettings);
-
-        if (!(await esClient.Indices.ExistsAsync(indexName)).Exists)
-        {
-            await esClient.Indices.CreateAsync(indexName);
-        }
+        var region = Environment.GetEnvironmentVariable("AWS_REGION");
+        var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
+        var eventTable = Table.LoadTable(dbClient, "hotel-created-event-ids");
+        
+        using var dbContext = new DynamoDBContext(dbClient);
 
         foreach (var eventRecord in snsEvent.Records)
         {
-
             var eventId = eventRecord.Sns.MessageId;
-            var foundItem = await table.GetItemAsync(eventId);
+            var foundItem = await eventTable.GetItemAsync(eventId);
             if (foundItem == null)
             {
-                await table.PutItemAsync(new Document
+                await eventTable.PutItemAsync(new Document
                 {
                     ["eventId"] = eventId
                 });
             }
 
             var hotel = JsonSerializer.Deserialize<Hotel>(eventRecord.Sns.Message);
-            await esClient.IndexDocumentAsync<Hotel>(hotel!);
+            await dbContext.SaveAsync(hotel);
 
             context.Logger.LogInformation($"Processed record {eventRecord.Sns.Message}");
         }
