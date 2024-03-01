@@ -1,4 +1,12 @@
-import { AppBar, Box, Button, List, ListItem, Switch, Toolbar } from '@mui/material';
+import {
+  AppBar,
+  Box,
+  Button,
+  List,
+  ListItem,
+  Switch,
+  Toolbar,
+} from '@mui/material';
 
 import { AuthContext } from '../context/AuthContext';
 import { CognitoUserPool } from 'amazon-cognito-identity-js';
@@ -9,7 +17,7 @@ import { useContext } from 'react';
 const midLinks = [
   { title: 'home', path: '/' },
   { title: 'about', path: '/about' },
-  { title: 'book a hotel', path: '/bookhotel' },
+  { title: 'search', path: '/catalog' },
 ];
 
 const rightLinks = [

@@ -18,6 +18,7 @@ interface AuthContextType {
   clearToken: () => void;
   isAdmin: () => boolean;
   isManager: () => boolean;
+  isMember: () => boolean;
 }
 
 export const AuthContext = React.createContext<AuthContextType | undefined>(
@@ -93,6 +94,14 @@ export const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
     return false;
   }, [accessToken]);
 
+  const isMember = useCallback(() => {
+    if (accessToken) {
+      const payload = accessToken.decodePayload();
+      return payload['cognito:groups']?.includes('Member') ?? false;
+    }
+    return false;
+  }, [accessToken]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -105,6 +114,7 @@ export const AuthProvider = ({ children }: PropsWithChildren<unknown>) => {
         clearToken,
         isAdmin,
         isManager,
+        isMember,
       }}
     >
       {children}
