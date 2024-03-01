@@ -42,6 +42,8 @@ export const Login = () => {
         navigate('/admin');
       } else if (authContext?.isManager()) {
         navigate('/manager');
+      } else if (authContext?.isMember()) {
+        navigate('/catalog');
       } else {
         navigate('/');
       }
@@ -51,6 +53,7 @@ export const Login = () => {
     authContext?.accessToken,
     authContext?.isAdmin,
     authContext?.isManager,
+    authContext?.isMember,
     navigate,
   ]);
 

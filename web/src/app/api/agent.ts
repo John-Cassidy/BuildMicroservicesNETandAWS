@@ -93,6 +93,18 @@ const Admin = {
     requests.putForm(`/${hotel.id}`, createFormData(hotel)),
 };
 
+const Member = {
+  searchHotels: (city: string, rating: string) => {
+    axios.defaults.baseURL =
+      'https://v0kqfsj6nc.execute-api.us-east-1.amazonaws.com/dev';
+    return requests.get(``, new URLSearchParams({ city, rating }));
+  },
+  getBookings: () => requests.get(''),
+  createBooking: (booking: any) => requests.post('', booking),
+  updateBooking: (booking: any) => requests.put('', booking),
+  deleteBooking: (id: string) => requests.delete(`/${id}`),
+};
+
 const TestAPI = {
   get: () => requests.get(''),
   getbyId: (id: string) => requests.get(`/${id}`),
@@ -111,5 +123,6 @@ const createFormData = (item: any) => {
 
 export const agent = {
   Admin,
+  Member,
   TestAPI,
 };
