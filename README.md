@@ -226,6 +226,16 @@ DELETE /index_name
 - insert eventId from topic into dynamodb
 - insert message from topic into opensearch
 
-## Create SearchApi Microservice
+## Create HotelSearchApi Microservice
 
 `This microservice provides an endpoint for customer to search OpenSearch for hotels`
+
+## Create HotelSearch Lambda
+
+`This Lambda will search DynamoDB table [HotelsCache] for hotels`
+
+## Creating and Querying Global Secondary Index (GSI) in Amazon DynamoDB
+
+### Create Global Secondary Index (GSI) in Amazon DynamoDB
+
+### Query a DynamoDB table using a Global Secondary Index (GSI)
