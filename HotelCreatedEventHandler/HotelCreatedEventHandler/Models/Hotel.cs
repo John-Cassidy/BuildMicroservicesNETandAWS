@@ -9,6 +9,8 @@ public class Hotel
 
     [DynamoDBRangeKey("Id")] public string? Id { get; set; }
 
+    public string? Constant { get; set; }
+
     public string? Name { get; set; }
     public int Rating { get; set; }
     public string? City { get; set; }

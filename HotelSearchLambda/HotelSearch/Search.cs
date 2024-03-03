@@ -4,13 +4,13 @@ using Amazon.DynamoDBv2;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
-using Amazon.Runtime.Internal;
 using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using Amazon;
 using HotelSearch.Models;
+using Amazon.DynamoDBv2.Model;
 
 [assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
@@ -77,17 +77,23 @@ public class Search
             };
         }
 
+        string city = request.QueryStringParameters.ContainsKey("city") ? request.QueryStringParameters["city"] : null;
+        string rating = request.QueryStringParameters.ContainsKey("rating") ? request.QueryStringParameters["rating"] : null;
+
         return request.HttpMethod.ToUpper() switch {
-            "GET" => await HandleGet(request, response, context, request.QueryStringParameters["city"], request.QueryStringParameters["rating"]),            
+            "GET" => await HandleGet(request, response, context, city, rating),            
             _ => response
         };
     }
 
-    public async Task<APIGatewayProxyResponse> HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, ILambdaContext context, string city, string rating) {
+    public async Task<APIGatewayProxyResponse> HandleGet(APIGatewayProxyRequest request, APIGatewayProxyResponse response, ILambdaContext context, string city = "", string rating = "") {
+
+        context.Logger.LogLine($"City: {city}, Rating: {rating}");
+
         response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS,GET");
 
         var region = Environment.GetEnvironmentVariable("AWS_REGION");
-        var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
+        using var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
         using var dbContext = new DynamoDBContext(dbClient);
 
         var hasRating = int.TryParse(rating, out int ratingValue);
@@ -95,32 +101,56 @@ public class Search
             ratingValue = 1;
         }
 
-        IEnumerable<ScanCondition> scanConditions = new List<ScanCondition>();
-        if (!string.IsNullOrEmpty(city) && ratingValue > 0) {
-            scanConditions = new List<ScanCondition>
-            {
-                new ScanCondition("City", ScanOperator.Contains, city),
-                new ScanCondition("Rating", ScanOperator.GreaterThanOrEqual, ratingValue)
+        var queryResult = new List<Hotel>();
+        QueryFilter queryFilter = new QueryFilter();
+        var indexName = string.Empty;
+
+        bool bScanResults = false;
+
+        var config = new QueryOperationConfig();
+
+        if (!string.IsNullOrEmpty(city) && ratingValue > 1) {
+            config.KeyExpression = new Expression {
+                ExpressionStatement = "City = :v_city and Rating >= :v_rating",
+                ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> {
+                    {":v_city", new Primitive { Value = city }},
+                    {":v_rating", new Primitive { Value = ratingValue.ToString() }}
+                }
             };
+            config.IndexName = "CityRatingIndex";
         } else if (!string.IsNullOrEmpty(city)) {
-            scanConditions = new List<ScanCondition>
-            {
-                new ScanCondition("City", ScanOperator.Contains, city)
+            config.KeyExpression = new Expression {
+                ExpressionStatement = "City = :v_city",
+                ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> {
+                    {":v_city", new Primitive { Value = city }}
+                }
             };
-        } else if (ratingValue > 0) {
-            scanConditions = new List<ScanCondition>
-            {
-                new ScanCondition("Rating", ScanOperator.GreaterThanOrEqual, ratingValue)
+            config.IndexName = "CityIndex";
+        } else if (ratingValue > 1) {
+            config.KeyExpression = new Expression {
+                ExpressionStatement = "Constant = :v_constant and Rating >= :v_rating",
+                ExpressionAttributeValues = new Dictionary<string, DynamoDBEntry> {
+                    {":v_constant", new Primitive { Value = "Hotel" }},
+                    {":v_rating", new Primitive { Value = ratingValue.ToString() }}
+                }
             };
+            config.IndexName = "RatingIndex";
+        } else {
+            bScanResults = true;
         }
 
-        var hotels = await dbContext.ScanAsync<Hotel>(scanConditions).GetRemainingAsync();
-
+        if (bScanResults) {
+            var scanResult = await dbContext.ScanAsync<Hotel>(new List<ScanCondition>()).GetRemainingAsync();
+            queryResult.AddRange(scanResult);
+        } else {
+            queryResult.AddRange(await dbContext.FromQueryAsync<Hotel>(config).GetRemainingAsync());
+        }
+        
         var options = new JsonSerializerOptions {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        response.Body = JsonSerializer.Serialize(new { Hotels = hotels }, options);
+        response.Body = JsonSerializer.Serialize(new { Hotels = queryResult }, options);
 
         return response;
     }

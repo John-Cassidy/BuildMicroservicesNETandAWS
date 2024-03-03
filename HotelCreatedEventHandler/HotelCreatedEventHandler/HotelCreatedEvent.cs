@@ -47,6 +47,7 @@ public class HotelCreatedEvent
             }
 
             var hotel = JsonSerializer.Deserialize<Hotel>(eventRecord.Sns.Message);
+            hotel.Constant = "Hotel";
             await dbContext.SaveAsync(hotel);
 
             context.Logger.LogInformation($"Processed record {eventRecord.Sns.Message}");
