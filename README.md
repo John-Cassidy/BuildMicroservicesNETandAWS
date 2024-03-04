@@ -81,6 +81,45 @@ NOTE: To list resources across multiple services with the specified tags, you ca
 
 ## Identity and Access Managemetn with AWS Cognito
 
+### Create Pool
+
+Create Cognito user pool
+
+### Users
+
+1. Admin - creates hotels (Admin group)
+2. Hotel Manager (Manager group)
+3. Customer - book hotels - normal users (Member group)
+
+### Groups
+
+1. Admin
+2. Manager
+3. Member
+
+### Domain Boundaries of Hotel Entities
+
+Hotel Entity has 3 Domain Boundaries:
+
+1. Hotel Management Domain (Admin group)
+
+- View List of Hotels
+- Add Hotel
+- Edit Hotel
+- Delete Hotel
+
+2. Booking Managment Domain (Manager group)
+
+- View Bookings
+- Approve Bookings
+
+3. Customer Dommain (Member group)
+
+- Search Hotels (may be separate microservice / lambda)
+- Book Hotel (may include multiple microservices for: shopping cart, payment, loyalty, applying coupons)
+
+![Domain Boundaries of Hotel Entity](./resources/screenshots/03_Domain_Boundaries.png)
+
 ## API Gateway
 
 The API Gateway pattern is a design pattern in microservices architecture that provides a single entry point for different types of clients (like web, mobile, and others) to access the diverse microservices in the system.
@@ -232,10 +271,16 @@ DELETE /index_name
 
 ## Create HotelSearch Lambda
 
-`This Lambda will search DynamoDB table [HotelsCache] for hotels`
+`This Lambda will allow Customers in (Cognito Member group) to search DynamoDB table [HotelsCache] for hotels`
 
 ## Creating and Querying Global Secondary Index (GSI) in Amazon DynamoDB
 
 ### Create Global Secondary Index (GSI) in Amazon DynamoDB
 
 ### Query a DynamoDB table using a Global Secondary Index (GSI)
+
+## Book Hotel
+
+`This functionality will allow Customers in (Cognito Member group) to book hotel`
+
+![Booking Event Sourcing Pattern](./resources/screenshots/10_Customer_Book_Hotel_Event_Sourcing_Pattern.png)

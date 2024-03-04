@@ -12,8 +12,9 @@ import {
   Typography,
 } from '@mui/material';
 import { Hotel, HotelListResponse } from '../../app/models/hotel';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { AddBooking } from '../booking/AddBooking';
 import { LoadingComponent } from '../../app/layout/LoadingComponent';
 import { agent } from '../../app/api/agent';
 import { currencyFormat } from '../../app/util/util';
@@ -24,7 +25,9 @@ export const Catalog = () => {
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState('');
   const [rating, setRating] = useState('');
-
+  const [selectedHotel, setSelectedHotel] = useState<Hotel | undefined>(
+    undefined
+  );
   useEffect(() => {
     agent.Member.searchHotels(city, rating)
       .then((response: HotelListResponse<Hotel>) => {
@@ -47,7 +50,14 @@ export const Catalog = () => {
     setReload(!reload);
   };
 
+  const cancelBooking = () => {
+    setSelectedHotel(undefined);
+  };
+
   if (loading) return <LoadingComponent message='Loading hotels...' />;
+
+  if (selectedHotel)
+    return <AddBooking cancelBooking={cancelBooking} hotel={selectedHotel} />;
 
   return (
     <>
@@ -113,6 +123,15 @@ export const Catalog = () => {
                 <TableCell align='center'>{item.rating}</TableCell>
                 <TableCell align='center'>
                   {currencyFormat(item.price)}
+                </TableCell>
+                <TableCell align='center'>
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    onClick={() => setSelectedHotel(item)}
+                  >
+                    Book Now!
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
