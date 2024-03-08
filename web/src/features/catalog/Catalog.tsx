@@ -44,7 +44,7 @@ export const Catalog = () => {
         console.log(error);
       })
       .finally(() => setLoading(false));
-  }, [reload]);
+  }, [city, rating, reload]);
 
   const searchHotels = () => {
     setReload(!reload);

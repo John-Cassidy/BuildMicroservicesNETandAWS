@@ -1,10 +1,8 @@
 import {
-  Avatar,
   Box,
   Button,
   Card,
   CardContent,
-  CardHeader,
   CardMedia,
   Grid,
   Paper,
@@ -12,12 +10,12 @@ import {
   Typography,
 } from '@mui/material';
 import {
-  DatePicker,
-  DateValidationError,
-  LocalizationProvider,
-  PickerChangeHandlerContext,
-} from '@mui/x-date-pickers';
-import { FieldValues, FormProvider, useForm } from 'react-hook-form';
+  Controller,
+  FieldValues,
+  FormProvider,
+  useForm,
+} from 'react-hook-form';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { currencyFormat, generateUUID } from '../../app/util/util';
 import { useContext, useState } from 'react';
 
@@ -39,6 +37,10 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
   const newBooking: Booking = {
     id: generateUUID(),
     userId: authContext?.user?.sub || '',
+    firstName: authContext?.user?.givenName || '',
+    lastName: authContext?.user?.familyName || '',
+    email: authContext?.user?.email || '',
+    address: authContext?.user?.address || '',
     hotel: hotel,
     checkIn: null,
     checkOut: null,
@@ -47,9 +49,13 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
   const [booking, setBooking] = useState<Booking>(newBooking);
 
   const methods = useForm({
+    defaultValues: {
+      ...booking,
+    },
     mode: 'onTouched',
   });
   const {
+    control,
     reset,
     handleSubmit,
     formState: { isSubmitting },
@@ -58,7 +64,7 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
   const submitForm = async (data: FieldValues) => {
     try {
       let response: any; // IHotel
-      if (booking.checkIn && booking.checkOut) {
+      if (data.checkIn && data.checkOut) {
         response = await agent.Member.createBooking(data);
         console.log(response);
         cancelBooking();
@@ -73,13 +79,6 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
     // if (hotel) reset(hotel);
     // else reset();
   };
-  function setCheckIn(value: Date | null): void {
-    setBooking({ ...booking, checkIn: value });
-  }
-
-  function setCheckOut(value: Date | null): void {
-    setBooking({ ...booking, checkOut: value });
-  }
 
   return (
     <Box component={Paper} sx={{ p: 4 }}>
@@ -95,13 +94,41 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
                   Checkin Date:
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <DatePicker value={booking.checkIn} onChange={setCheckIn} />
+                  <Controller
+                    control={control}
+                    name='checkIn'
+                    rules={{ required: true }}
+                    render={({ field }) => {
+                      return (
+                        <DatePicker
+                          value={field.value}
+                          onChange={(value) => {
+                            field.onChange(value);
+                          }}
+                        />
+                      );
+                    }}
+                  />
                 </Grid>
                 <Grid item xs={12} sm={3}>
                   Checkout Date:
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <DatePicker value={booking.checkOut} onChange={setCheckOut} />
+                  <Controller
+                    control={control}
+                    name='checkOut'
+                    rules={{ required: true }}
+                    render={({ field }) => {
+                      return (
+                        <DatePicker
+                          value={field.value}
+                          onChange={(value) => {
+                            field.onChange(value);
+                          }}
+                        />
+                      );
+                    }}
+                  />
                 </Grid>
               </Grid>
               <Box display='flex' justifyContent='space-between' sx={{ mt: 3 }}>

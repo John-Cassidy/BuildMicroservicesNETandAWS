@@ -85,12 +85,26 @@ const requests = {
 };
 
 const Admin = {
-  getImage: (fileName: string) =>
-    requests.get(`image`, new URLSearchParams({ fileName })),
-  getHotels: () => requests.get(''),
-  createHotel: (hotel: any) => requests.createForm('', createFormData(hotel)),
-  updateHotel: (hotel: any) =>
-    requests.putForm(`/${hotel.id}`, createFormData(hotel)),
+  getImage: (fileName: string) => {
+    axios.defaults.baseURL =
+      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    return requests.get(`image`, new URLSearchParams({ fileName }));
+  },
+  getHotels: () => {
+    axios.defaults.baseURL =
+      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    return requests.get('');
+  },
+  createHotel: (hotel: any) => {
+    axios.defaults.baseURL =
+      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    return requests.createForm('', createFormData(hotel));
+  },
+  updateHotel: (hotel: any) => {
+    axios.defaults.baseURL =
+      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    return requests.putForm(`/${hotel.id}`, createFormData(hotel));
+  },
 };
 
 const Member = {
@@ -105,14 +119,6 @@ const Member = {
   deleteBooking: (id: string) => requests.delete(`/${id}`),
 };
 
-const TestAPI = {
-  get: () => requests.get(''),
-  getbyId: (id: string) => requests.get(`/${id}`),
-  post: (data: any) => requests.post('', data),
-  put: (data: any) => requests.put('', data),
-  delete: (id: string) => requests.delete(`/${id}`),
-};
-
 const createFormData = (item: any) => {
   const formData = new FormData();
   for (const key in item) {
@@ -124,5 +130,4 @@ const createFormData = (item: any) => {
 export const agent = {
   Admin,
   Member,
-  TestAPI,
 };
