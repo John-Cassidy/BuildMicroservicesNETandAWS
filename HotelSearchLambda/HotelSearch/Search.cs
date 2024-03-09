@@ -82,7 +82,9 @@ public class Search
 
         return request.HttpMethod.ToUpper() switch {
             "GET" => await HandleGet(request, response, context, city, rating),            
-            _ => response
+            _ => new APIGatewayProxyResponse {
+                StatusCode = (int)HttpStatusCode.NotFound
+            }
         };
     }
 

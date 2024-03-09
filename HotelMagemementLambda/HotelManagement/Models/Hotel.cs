@@ -2,9 +2,10 @@
 
 namespace HotelManagement.Models;
 
-[DynamoDBTable("Hotels")]
-public class Hotel {
-    [DynamoDBHashKey("userId")]
+[DynamoDBTable("HotelsAdmin_Hotels")]
+public class Hotel
+{
+    [DynamoDBHashKey("UserId")]
     public string? UserId { get; set; }
 
     [DynamoDBRangeKey("Id")]

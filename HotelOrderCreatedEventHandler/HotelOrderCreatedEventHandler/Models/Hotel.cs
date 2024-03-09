@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace HotelOrderCreatedEventHandler.Models;
 
-[DynamoDBTable("HotelsOrder")]
+[DynamoDBTable("HotelsOrder_Hotels")]
 public class Hotel {
-    [DynamoDBHashKey("userId")] public string? UserId { get; set; }
+    [DynamoDBHashKey("UserId")] public string? UserId { get; set; }
 
     [DynamoDBRangeKey("Id")] public string? Id { get; set; }
 

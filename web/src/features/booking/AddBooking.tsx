@@ -16,15 +16,15 @@ import {
   useForm,
 } from 'react-hook-form';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { currencyFormat, generateUUID } from '../../app/util/util';
 import { useContext, useState } from 'react';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { AuthContext } from '../../app/context/AuthContext';
-import { Booking } from '../../app/models/booking';
 import { Hotel } from '../../app/models/hotel';
 import { LoadingButton } from '@mui/lab';
+import { NewBooking } from '../../app/models/booking';
 import { agent } from '../../app/api/agent';
+import { currencyFormat } from '../../app/util/util';
 
 interface Props {
   hotel: Hotel;
@@ -34,19 +34,18 @@ interface Props {
 export const AddBooking = ({ hotel, cancelBooking }: Props) => {
   const authContext = useContext(AuthContext);
 
-  const newBooking: Booking = {
-    id: generateUUID(),
+  const newBooking: NewBooking = {
     userId: authContext?.user?.sub || '',
     firstName: authContext?.user?.givenName || '',
     lastName: authContext?.user?.familyName || '',
     email: authContext?.user?.email || '',
     address: authContext?.user?.address || '',
-    hotel: hotel,
+    hotelId: hotel.id,
     checkIn: null,
     checkOut: null,
   };
 
-  const [booking, setBooking] = useState<Booking>(newBooking);
+  const [booking, setBooking] = useState<NewBooking>(newBooking);
 
   const methods = useForm({
     defaultValues: {

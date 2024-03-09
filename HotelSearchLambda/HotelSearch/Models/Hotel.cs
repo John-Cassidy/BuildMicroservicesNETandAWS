@@ -1,9 +1,9 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 
 namespace HotelSearch.Models;
-[DynamoDBTable("HotelsCache")]
+[DynamoDBTable("HotelsSearch_Hotels")]
 public class Hotel {
-    [DynamoDBHashKey("userId")]
+    [DynamoDBHashKey("UserId")]
     public string? UserId { get; set; }
 
     [DynamoDBRangeKey("Id")]

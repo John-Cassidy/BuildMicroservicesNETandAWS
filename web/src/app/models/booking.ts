@@ -11,3 +11,14 @@ export interface Booking {
   checkIn: Date | null;
   checkOut: Date | null;
 }
+
+export interface NewBooking {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: string;
+  hotelId: string;
+  checkIn: Date | null;
+  checkOut: Date | null;
+}

@@ -30,7 +30,7 @@ public class HotelOrderCreatedEvent
     {
         var region = Environment.GetEnvironmentVariable("AWS_REGION");
         var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
-        var eventTable = Table.LoadTable(dbClient, "hotel-order-created-event-ids");
+        var eventTable = Table.LoadTable(dbClient, "HotelsOrder_CreatedEventIds");
 
         using var dbContext = new DynamoDBContext(dbClient);
 
@@ -39,7 +39,7 @@ public class HotelOrderCreatedEvent
             var foundItem = await eventTable.GetItemAsync(eventId);
             if (foundItem == null) {
                 await eventTable.PutItemAsync(new Document {
-                    ["eventId"] = eventId
+                    ["EventId"] = eventId
                 });
             }
 
