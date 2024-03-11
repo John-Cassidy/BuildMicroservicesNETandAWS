@@ -94,7 +94,7 @@ public class HotelAdmin
 
         // 4. Check UserId        
         var token = new JwtSecurityToken(bearerToken.Replace("Bearer ", ""));
-        var userId = token.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
+        var userId = token.Claims.FirstOrDefault(x => x.Type == "cognito:username")?.Value;
 
         if (userId is null)
         {
@@ -113,7 +113,8 @@ public class HotelAdmin
         };
     }
 
-    private async Task<APIGatewayProxyResponse> HandleGetImage(APIGatewayProxyRequest request, APIGatewayProxyResponse response, ILambdaContext context, string fileName) {
+    private async Task<APIGatewayProxyResponse> HandleGetImage(APIGatewayProxyRequest request, APIGatewayProxyResponse response, ILambdaContext context, string fileName)
+    {
         var region = Environment.GetEnvironmentVariable("AWS_REGION");
         var bucketName = _s3BucketName;
         var client = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
@@ -265,32 +266,39 @@ public class HotelAdmin
 
             var snsClient = new AmazonSimpleNotificationServiceClient(RegionEndpoint.GetBySystemName(region));
             var publishResponse = await snsClient.PublishAsync(new PublishRequest
-                       {
+            {
                 Message = JsonSerializer.Serialize(hotelCreatedEvent),
                 TopicArn = _snsTopicArn
             });
 
             sbResponse.AppendLine($"SNS message sent. MessageId: {publishResponse.MessageId}");
 
-        } catch (AmazonS3Exception e) {
+        }
+        catch (AmazonS3Exception e)
+        {
             // Handle exception related to AWS S3 service
             context.Logger.LogLine($"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object");
             response.StatusCode = (int)HttpStatusCode.InternalServerError;
             response.Body = $"AmazonS3Exception encountered. Message:'{e.Message}' when writing an object";
             throw;
-        } catch (AmazonDynamoDBException e) {
+        }
+        catch (AmazonDynamoDBException e)
+        {
             // Handle exception related to AWS DynamoDB service
             context.Logger.LogLine($"AmazonDynamoDBException encountered. Message:'{e.Message}' when saving to DynamoDB");
             response.StatusCode = (int)HttpStatusCode.InternalServerError;
             response.Body = $"AmazonDynamoDBException encountered. Message:'{e.Message}' when saving to DynamoDB";
             throw;
-        } catch (AmazonSimpleNotificationServiceException e) {
+        }
+        catch (AmazonSimpleNotificationServiceException e)
+        {
             // Handle exception related to AWS SNS service
             context.Logger.LogLine($"AmazonSimpleNotificationServiceException encountered. Message:'{e.Message}' when publishing a message");
             response.StatusCode = (int)HttpStatusCode.InternalServerError;
             response.Body = $"AmazonSimpleNotificationServiceException encountered. Message:'{e.Message}' when publishing a message";
             throw;
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             context.Logger.LogLine($"Message: {e.Message}, StackTrace: {e.StackTrace}");
             response.StatusCode = (int)HttpStatusCode.InternalServerError;

@@ -1,3 +1,4 @@
+using HotelOrder.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -39,6 +40,8 @@ builder.Services
             RoleClaimType = "cognito:groups"
         };
     });
+
+builder.Services.AddScoped<ICognitoAuthority, CognitoAuthority>();
 
 
 var app = builder.Build();
