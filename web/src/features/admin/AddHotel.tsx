@@ -57,10 +57,10 @@ export const AddHotel = ({ hotel, cancelEdit }: Props) => {
     try {
       let response: any; // IHotel
       if (hotel) {
-        response = await agent.Admin.updateHotel(data);
+        response = await agent.Management.updateHotel(data);
         console.log(response);
       } else {
-        response = await agent.Admin.createHotel(data);
+        response = await agent.Management.createHotel(data);
         console.log(response);
       }
       cancelEdit();

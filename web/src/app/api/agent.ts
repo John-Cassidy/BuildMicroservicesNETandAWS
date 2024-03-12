@@ -1,11 +1,24 @@
+import { HotelURLs, S3URLs } from './baseURLs';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 
 import { getIdToken } from '../context/authHelper';
 import { router } from '../router/Routes';
 import { toast } from 'react-toastify';
 
-axios.defaults.baseURL =
-  'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+const URLS: HotelURLs = {
+  HotelManagementURL:
+    'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev',
+  HotelOrderURL:
+    'https://3wimxn3oj2.execute-api.us-east-1.amazonaws.com/dev/hotel-order',
+  HotelSearchURL: 'https://v0kqfsj6nc.execute-api.us-east-1.amazonaws.com/dev',
+};
+
+const S3URLS: S3URLs = {
+  Hotel_Image_URL: 'https://hotel-booking-bucket-157.s3.amazonaws.com',
+  // https://s3.us-east-1.amazonaws.com/hotel-booking-bucket-157
+};
+
+axios.defaults.baseURL = URLS.HotelManagementURL;
 
 const responseBody = (response: any) => response;
 
@@ -84,39 +97,53 @@ const requests = {
       .then(responseBody),
 };
 
-const Admin = {
+const Management = {
   getImage: (fileName: string) => {
-    axios.defaults.baseURL =
-      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    axios.defaults.baseURL = URLS.HotelManagementURL;
     return requests.get(`image`, new URLSearchParams({ fileName }));
   },
   getHotels: () => {
-    axios.defaults.baseURL =
-      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    axios.defaults.baseURL = URLS.HotelManagementURL;
     return requests.get('');
   },
   createHotel: (hotel: any) => {
-    axios.defaults.baseURL =
-      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    axios.defaults.baseURL = URLS.HotelManagementURL;
     return requests.createForm('', createFormData(hotel));
   },
   updateHotel: (hotel: any) => {
-    axios.defaults.baseURL =
-      'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev';
+    axios.defaults.baseURL = URLS.HotelManagementURL;
     return requests.putForm(`/${hotel.id}`, createFormData(hotel));
   },
 };
 
-const Member = {
+const Search = {
   searchHotels: (city: string, rating: string) => {
-    axios.defaults.baseURL =
-      'https://v0kqfsj6nc.execute-api.us-east-1.amazonaws.com/dev';
+    axios.defaults.baseURL = URLS.HotelSearchURL;
     return requests.get(``, new URLSearchParams({ city, rating }));
   },
-  getBookings: () => requests.get(''),
-  createBooking: (booking: any) => requests.post('', booking),
-  updateBooking: (booking: any) => requests.put('', booking),
-  deleteBooking: (id: string) => requests.delete(`/${id}`),
+};
+
+const Member = {
+  getBookings: () => {
+    axios.defaults.baseURL = URLS.HotelOrderURL;
+    return requests.get('/booking');
+  },
+  getBooking: (id: string) => {
+    axios.defaults.baseURL = URLS.HotelOrderURL;
+    return requests.get(`/booking/${id}`);
+  },
+  createBooking: (booking: any) => {
+    axios.defaults.baseURL = URLS.HotelOrderURL;
+    return requests.post('/booking', booking);
+  },
+  updateBooking: (booking: any) => {
+    axios.defaults.baseURL = URLS.HotelOrderURL;
+    return requests.put('/booking', booking);
+  },
+  deleteBooking: (id: string) => {
+    axios.defaults.baseURL = URLS.HotelOrderURL;
+    return requests.delete(`/booking/${id}`);
+  },
 };
 
 const createFormData = (item: any) => {
@@ -128,6 +155,8 @@ const createFormData = (item: any) => {
 };
 
 export const agent = {
-  Admin,
+  Management,
   Member,
+  Search,
+  S3URLS,
 };

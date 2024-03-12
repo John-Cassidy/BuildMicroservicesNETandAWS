@@ -19,7 +19,7 @@ namespace HotelOrder.Controllers;
 [ApiController]
 public class BookingController : ControllerBase
 {
-    //[Authorize(Roles = "Member")]
+    [Authorize(Roles = "Member")]
     // add Response Type IEnumerable<Booking>
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

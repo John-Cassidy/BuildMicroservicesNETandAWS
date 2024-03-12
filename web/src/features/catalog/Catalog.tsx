@@ -29,13 +29,12 @@ export const Catalog = () => {
     undefined
   );
   useEffect(() => {
-    agent.Member.searchHotels(city, rating)
+    agent.Search.searchHotels(city, rating)
       .then((response: HotelListResponse<Hotel>) => {
         const hotelsWithImageUrl = response.data.hotels.map((hotel) => {
           return {
             ...hotel,
-            imageUrl: `https://hotel-booking-bucket-157.s3.amazonaws.com/${hotel.fileName}`,
-            // imageUrl: `https://s3.us-east-1.amazonaws.com/hotel-booking-bucket-157/${hotel.fileName}`,
+            imageUrl: `${agent.S3URLS.Hotel_Image_URL}/${hotel.fileName}`,
           };
         });
         setHotels(hotelsWithImageUrl);
