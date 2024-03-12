@@ -1,9 +1,8 @@
-﻿using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Protocols;
+﻿using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOrder.Validators;
 
@@ -12,12 +11,11 @@ public interface ICognitoAuthority {
     Task<string?> GetUserId(ClaimsPrincipal user, HttpRequest request);
 }
 
-public class CognitoAuthority: ICognitoAuthority {
+public class CognitoAuthority : ICognitoAuthority {
     private readonly string _Issuer;
     private readonly string? _Audience;
 
-    public CognitoAuthority(IConfiguration configuration)
-    {
+    public CognitoAuthority(IConfiguration configuration) {
         string? cognitoAppClientId = configuration["AppSettings:Cognito:AppClientId"]?.ToString();
         string? cognitoUserPoolId = configuration["AppSettings:Cognito:UserPoolId"]?.ToString();
         string? cognitoAWSRegion = configuration["AppSettings:Cognito:AWSRegion"]?.ToString();
@@ -69,9 +67,17 @@ public class CognitoAuthority: ICognitoAuthority {
 
             string bearerToken = request.Headers["Authorization"]!;
 
-            ClaimsPrincipal claimPrincipal = await this.ValidateTokenAsync(bearerToken);
-            if (!claimPrincipal?.Identity?.IsAuthenticated ?? false) return null;
-            if (!claimPrincipal?.IsInRole("Member") ?? false) return null;
+            ClaimsPrincipal claimPrincipal = null;
+            
+            try {
+                claimPrincipal = await this.ValidateTokenAsync(bearerToken);
+            } catch {
+                return null;
+            }
+            if (!claimPrincipal?.Identity?.IsAuthenticated ?? false)
+                return null;
+            if (!claimPrincipal?.IsInRole("Member") ?? false)
+                return null;
 
             return claimPrincipal.Claims.FirstOrDefault(c => c.Type == "cognito:username")?.Value;
         }

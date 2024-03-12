@@ -1,3 +1,5 @@
+import { FieldValues } from 'react-hook-form';
+
 export const currencyFormat = (amount: number) => {
   return '$' + (amount / 100).toFixed(2);
 };
@@ -28,4 +30,13 @@ export const generateUUID = (): string => {
       v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
+};
+
+export const isValidDate = (data: FieldValues, fieldName: string): boolean => {
+  if (data[fieldName] === null || data[fieldName] === undefined) {
+    return false;
+  }
+
+  const date = new Date(data[fieldName]);
+  return !isNaN(date.getTime());
 };

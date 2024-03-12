@@ -1,9 +1,9 @@
-﻿using Amazon.DynamoDBv2.DataModel;
+﻿using Amazon;
 using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
+using HotelOrder.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Amazon;
-using HotelOrder.Models;
 
 namespace HotelOrder.Controllers;
 [Route("[controller]")]
@@ -11,9 +11,9 @@ namespace HotelOrder.Controllers;
 public class HotelController : ControllerBase {
 
     [Authorize(Roles = "Admin,HotelManager,Member")]
-    [HttpGet]    
+    [HttpGet]
     public async Task<IEnumerable<Hotel>> Get([FromServices] IConfiguration configuration) {
-        var region =configuration["AppSettings:DynamoDB:AWSRegion"];
+        var region = configuration["AppSettings:DynamoDB:AWSRegion"];
         using var dbClient = new AmazonDynamoDBClient(RegionEndpoint.GetBySystemName(region));
         using var dbContext = new DynamoDBContext(dbClient);
 

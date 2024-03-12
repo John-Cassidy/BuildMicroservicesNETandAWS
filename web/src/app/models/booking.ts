@@ -13,7 +13,6 @@ export interface Booking {
 }
 
 export interface NewBooking {
-  userId: string;
   firstName: string;
   lastName: string;
   email: string;

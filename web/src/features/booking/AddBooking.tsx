@@ -16,6 +16,7 @@ import {
   useForm,
 } from 'react-hook-form';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { currencyFormat, isValidDate } from '../../app/util/util';
 import { useContext, useState } from 'react';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -24,7 +25,6 @@ import { Hotel } from '../../app/models/hotel';
 import { LoadingButton } from '@mui/lab';
 import { NewBooking } from '../../app/models/booking';
 import { agent } from '../../app/api/agent';
-import { currencyFormat } from '../../app/util/util';
 
 interface Props {
   hotel: Hotel;
@@ -32,10 +32,10 @@ interface Props {
 }
 
 export const AddBooking = ({ hotel, cancelBooking }: Props) => {
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const authContext = useContext(AuthContext);
 
   const newBooking: NewBooking = {
-    userId: authContext?.user?.sub || '',
     firstName: authContext?.user?.givenName || '',
     lastName: authContext?.user?.familyName || '',
     email: authContext?.user?.email || '',
@@ -63,13 +63,17 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
   const submitForm = async (data: FieldValues) => {
     try {
       let response: any; // IHotel
-      if (data.checkIn && data.checkOut) {
+      if (isValidDate(data, 'checkIn') && isValidDate(data, 'checkOut')) {
+        setErrorMessage('');
         response = await agent.Member.createBooking(data);
         console.log(response);
         cancelBooking();
+      } else {
+        setErrorMessage('Invalid date(s) selected. Please try again.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.data.error);
     }
   };
   const resetForm = () => {
@@ -84,6 +88,11 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
       <Typography sx={{ p: 2 }} variant='h4'>
         Book {hotel.name} for only {currencyFormat(hotel.price)}
       </Typography>
+      {errorMessage && (
+        <Typography sx={{ p: 2 }} variant='body1' color='error'>
+          {errorMessage}
+        </Typography>
+      )}
       <Box sx={{ p: 4 }}>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(submitForm)} noValidate>
