@@ -8,8 +8,8 @@ import { toast } from 'react-toastify';
 const URLS: HotelURLs = {
   HotelManagementURL:
     'https://7xfjmwdus0.execute-api.us-east-1.amazonaws.com/dev',
-  HotelOrderURL: 'https://localhost:57239',
-  // 'https://3wimxn3oj2.execute-api.us-east-1.amazonaws.com/dev/hotel-order',
+  HotelOrderURL: 'https://3wimxn3oj2.execute-api.us-east-1.amazonaws.com/dev/hotel-order',
+    // 'https://localhost:57239',
   HotelSearchURL: 'https://v0kqfsj6nc.execute-api.us-east-1.amazonaws.com/dev',
 };
 

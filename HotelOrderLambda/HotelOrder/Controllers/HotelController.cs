@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOrder.Controllers;
+
+[Authorize(Roles = "Admin,HotelManager,Member")]
 [Route("[controller]")]
 [ApiController]
 public class HotelController : ControllerBase {
-
-    [Authorize(Roles = "Admin,HotelManager,Member")]
+    
     [HttpGet]
     public async Task<IEnumerable<Hotel>> Get([FromServices] IConfiguration configuration) {
         var region = configuration["AppSettings:DynamoDB:AWSRegion"];

@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using AutoMapper;
+using HotelOrder.Dtos;
 using HotelOrder.Models;
 using HotelOrder.Requests;
 using HotelOrder.Validators;
@@ -11,10 +12,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOrder.Controllers;
 
+[Authorize(Roles = "Member")]
 [Route("[controller]")]
 [ApiController]
 public class BookingController : ControllerBase {
-    //[Authorize(Roles = "Member")]
+    
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpGet]
@@ -35,9 +37,25 @@ public class BookingController : ControllerBase {
             new ScanCondition("UserId", ScanOperator.Equal, userId)
         };
 
-        var result = new List<Booking>();
-        var scanResult = await dbContext.ScanAsync<Booking>(conditions).GetRemainingAsync();
+        var result = new List<BookingDto>();
+        var scanResult = await dbContext.ScanAsync<BookingDto>(conditions).GetRemainingAsync();
         result.AddRange(scanResult);
+
+        await Parallel.ForEachAsync(result, async (booking, cToken) =>
+        {
+            var hotelId = booking.HotelId;
+
+            var hotelConditions = new List<ScanCondition>
+            {
+                new ScanCondition("Id", ScanOperator.Equal, hotelId)
+            };
+            var matchingHotel = await dbContext.ScanAsync<Hotel>(hotelConditions).GetRemainingAsync();
+            booking.HotelName = matchingHotel.FirstOrDefault()?.Name ?? "";
+            booking.HotelRating = matchingHotel.FirstOrDefault()?.Rating ?? 0;
+            booking.HotelCity = matchingHotel.FirstOrDefault()?.City ?? "";
+            booking.HotelPrice = matchingHotel.FirstOrDefault()?.Price ?? 0;
+            booking.HotelFileName = matchingHotel.FirstOrDefault()?.FileName ?? "";
+        });
 
         return Ok(result);
     }
@@ -58,13 +76,32 @@ public class BookingController : ControllerBase {
             return BadRequest(error);
         }
 
-        var booking = await dbContext.LoadAsync<Booking>(userId, id);
+        var conditions = new List<ScanCondition>
+        {
+            new ScanCondition("UserId", ScanOperator.Equal, userId),
+            new ScanCondition("Id", ScanOperator.Equal, id)
+        };
 
-        if (booking == null) {
-            return NotFound();
-        }
+        var result = new List<BookingDto>();
+        var scanResult = await dbContext.ScanAsync<BookingDto>(conditions).GetRemainingAsync();
+        result.AddRange(scanResult);
 
-        return Ok(booking);
+        await Parallel.ForEachAsync(result, async (booking, cToken) => {
+            var hotelId = booking.HotelId;
+
+            var hotelConditions = new List<ScanCondition>
+            {
+                new ScanCondition("Id", ScanOperator.Equal, hotelId)
+            };
+            var matchingHotel = await dbContext.ScanAsync<Hotel>(hotelConditions).GetRemainingAsync();
+            booking.HotelName = matchingHotel.FirstOrDefault()?.Name ?? "";
+            booking.HotelRating = matchingHotel.FirstOrDefault()?.Rating ?? 0;
+            booking.HotelCity = matchingHotel.FirstOrDefault()?.City ?? "";
+            booking.HotelPrice = matchingHotel.FirstOrDefault()?.Price ?? 0;
+            booking.HotelFileName = matchingHotel.FirstOrDefault()?.FileName ?? "";
+        });
+
+        return Ok(result);
     }
 
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -102,6 +139,8 @@ public class BookingController : ControllerBase {
                         opt => opt.MapFrom(src => DateTime.Parse(src.CheckIn!)))
                     .ForMember(dest => dest.CheckOut,
                         opt => opt.MapFrom(src => DateTime.Parse(src.CheckOut!)))
+                    .ForMember(dest => dest.Status,
+                        opt => opt.MapFrom(src => BookingStatus.Pending))
                     .ForMember(dest => dest.CreationDateTime,
                         opt => opt.MapFrom(src => DateTime.Now))
                     .ForMember(dest => dest.ModifiedDateTime,
