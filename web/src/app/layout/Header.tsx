@@ -74,6 +74,26 @@ export const Header = ({ handleThemeChange, darkMode }: Props) => {
                 {title.toUpperCase()}
               </ListItem>
             ))}
+            {authContext?.isAdmin() && (
+              <ListItem
+                component={NavLink}
+                to='/admin'
+                key='/admin'
+                sx={navLinkStyles}
+              >
+                ADMIN
+              </ListItem>
+            )}
+            {authContext?.isMember() && (
+              <ListItem
+                component={NavLink}
+                to='/booking'
+                key='/booking'
+                sx={navLinkStyles}
+              >
+                BOOKING
+              </ListItem>
+            )}
           </List>
         </Box>
         {authContext?.user ? (

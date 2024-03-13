@@ -1,15 +1,19 @@
+import { Navigate, createBrowserRouter } from 'react-router-dom';
+
 import { AboutPage } from '../../features/about/AboutPage';
+import { AddBooking } from '../../features/booking/AddBooking';
 import { AddHotel } from '../../features/admin/AddHotel';
 import { App } from '../layout/App';
+import { Bookings } from '../../features/booking/Bookings';
 import { Catalog } from '../../features/catalog/Catalog';
 import { ConfirmRegistration } from '../../features/account/ConfirmRegistration';
 import { HomePage } from '../../features/home/HomePage';
 import { HotelInventory } from '../../features/admin/AdminBooking';
 import { Login } from '../../features/account/Login';
+import NotFound from '../errors/NotFound';
 import { Register } from '../../features/account/Register';
 import { RequireAdmin } from './RequireAdmin';
 import { RequireMember } from './RequireMember';
-import { createBrowserRouter } from 'react-router-dom';
 
 export const router = createBrowserRouter([
   {
@@ -38,9 +42,21 @@ export const router = createBrowserRouter([
         element: <RequireMember />,
         children: [{ path: 'catalog', element: <Catalog /> }],
       },
+      {
+        element: <RequireMember />,
+        children: [
+          { path: 'booking', element: <Bookings /> },
+          {
+            path: 'booking/add-booking',
+            element: <AddBooking cancelBooking={() => {}} hotel={undefined} />,
+          },
+        ],
+      },
       { path: '/login', element: <Login /> },
       { path: '/register', element: <Register /> },
       { path: '/confirm-registration', element: <ConfirmRegistration /> },
+      { path: '/not-found', element: <NotFound /> },
+      { path: '*', element: <Navigate replace to='/not-found' /> },
     ],
   },
 ]);

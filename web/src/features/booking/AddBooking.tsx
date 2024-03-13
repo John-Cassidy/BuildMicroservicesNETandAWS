@@ -25,13 +25,23 @@ import { Hotel } from '../../app/models/hotel';
 import { LoadingButton } from '@mui/lab';
 import { NewBooking } from '../../app/models/booking';
 import { agent } from '../../app/api/agent';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
-  hotel: Hotel;
+  hotel: Hotel | null | undefined;
   cancelBooking: () => void;
 }
 
 export const AddBooking = ({ hotel, cancelBooking }: Props) => {
+  const navigation = useNavigate();
+
+  useEffect(() => {
+    if (!hotel) {
+      navigation('/');
+    }
+  }, [hotel, navigation]);
+
   const [errorMessage, setErrorMessage] = useState<string>('');
   const authContext = useContext(AuthContext);
 
@@ -40,7 +50,7 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
     lastName: authContext?.user?.familyName || '',
     email: authContext?.user?.email || '',
     address: authContext?.user?.address || '',
-    hotelId: hotel.id,
+    hotelId: hotel!.id,
     checkIn: null,
     checkOut: null,
   };
@@ -86,7 +96,7 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
   return (
     <Box component={Paper} sx={{ p: 4 }}>
       <Typography sx={{ p: 2 }} variant='h4'>
-        Book {hotel.name} for only {currencyFormat(hotel.price)}
+        Book {hotel!.name} for only {currencyFormat(hotel!.price)}
       </Typography>
       {errorMessage && (
         <Typography sx={{ p: 2 }} variant='body1' color='error'>
@@ -181,16 +191,16 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
             }}
           >
             <Box display='flex' alignItems='center'>
-              {hotel.name}
+              {hotel!.name}
             </Box>
             <Box display='flex' alignItems='center'>
-              {hotel.city}
+              {hotel!.city}
             </Box>
             <Box display='flex' alignItems='center'>
-              Rating: {hotel.rating}
+              Rating: {hotel!.rating}
             </Box>
             <Box display='flex' alignItems='center'>
-              {currencyFormat(hotel.price)}
+              {currencyFormat(hotel!.price)}
             </Box>
           </Toolbar>
         </CardContent>
@@ -199,8 +209,8 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
             height: 0,
             paddingTop: '56.25%', // 16:9,
           }}
-          image={hotel.imageUrl}
-          title={hotel.name}
+          image={hotel!.imageUrl}
+          title={hotel!.name}
         />
       </Card>
     </Box>
