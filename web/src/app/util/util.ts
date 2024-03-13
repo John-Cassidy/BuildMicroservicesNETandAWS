@@ -4,6 +4,10 @@ export const currencyFormat = (amount: number) => {
   return '$' + (amount / 100).toFixed(2);
 };
 
+export const formatDate = (date: string | null) => {
+  return date ? new Date(date).toLocaleDateString() : '';
+};
+
 // Utility function to convert string to camelCase
 const toCamelCase = (str: string) => {
   return str.replace(/([-_][a-z])/gi, ($1) => {

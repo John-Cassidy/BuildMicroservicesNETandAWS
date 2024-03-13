@@ -9,6 +9,7 @@ using HotelOrder.Requests;
 using HotelOrder.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace HotelOrder.Controllers;
 
@@ -57,7 +58,11 @@ public class BookingController : ControllerBase {
             booking.HotelFileName = matchingHotel.FirstOrDefault()?.FileName ?? "";
         });
 
-        return Ok(result);
+        var options = new JsonSerializerOptions {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        return Ok(JsonSerializer.Serialize(new { Bookings = result }, options));
     }
 
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -101,7 +106,11 @@ public class BookingController : ControllerBase {
             booking.HotelFileName = matchingHotel.FirstOrDefault()?.FileName ?? "";
         });
 
-        return Ok(result);
+        var options = new JsonSerializerOptions {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        return Ok(JsonSerializer.Serialize(new { Bookings = result }, options));
     }
 
     [ProducesResponseType(StatusCodes.Status201Created)]
