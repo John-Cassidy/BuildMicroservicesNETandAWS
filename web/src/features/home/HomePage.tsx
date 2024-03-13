@@ -48,7 +48,7 @@ export const HomePage = () => {
         </Slider>
       </div>
 
-      <Typography variant='h2' component='div' gutterBottom>
+      <Typography variant='h3' component='div' gutterBottom>
         Welcome to StayAwhile
       </Typography>
       <Typography variant='body1' component='div' gutterBottom>
