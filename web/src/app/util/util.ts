@@ -4,7 +4,25 @@ export const currencyFormat = (amount: number) => {
   return '$' + (amount / 100).toFixed(2);
 };
 
-export const formatDate = (date: string | null) => {
+export function calculateTotalPrice(
+  checkIn: Date | null | undefined,
+  checkOut: Date | null | undefined,
+  price: number
+): number {
+  if (checkIn && checkOut) {
+    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+    const firstDate = new Date(checkIn);
+    const secondDate = new Date(checkOut);
+
+    const days = Math.round(
+      Math.abs((firstDate.getTime() - secondDate.getTime()) / oneDay)
+    );
+    return days * price;
+  }
+  return 0;
+}
+
+export const formatDate = (date: Date | string | null) => {
   return date ? new Date(date).toLocaleDateString() : '';
 };
 

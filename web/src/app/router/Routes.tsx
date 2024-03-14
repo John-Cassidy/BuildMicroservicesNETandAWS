@@ -4,6 +4,7 @@ import { AboutPage } from '../../features/about/AboutPage';
 import { AddBooking } from '../../features/booking/AddBooking';
 import { AddHotel } from '../../features/admin/AddHotel';
 import { App } from '../layout/App';
+import { BookingDetails } from '../../features/booking/BookingDetails';
 import { Bookings } from '../../features/booking/Bookings';
 import { Catalog } from '../../features/catalog/Catalog';
 import { ConfirmRegistration } from '../../features/account/ConfirmRegistration';
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
         element: <RequireMember />,
         children: [
           { path: 'booking', element: <Bookings /> },
+          {
+            path: 'booking/:id',
+            element: <BookingDetails />,
+          },
           {
             path: 'booking/add-booking',
             element: <AddBooking cancelBooking={() => {}} hotel={undefined} />,

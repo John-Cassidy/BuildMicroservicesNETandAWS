@@ -38,7 +38,7 @@ export const AddBooking = ({ hotel, cancelBooking }: Props) => {
 
   useEffect(() => {
     if (!hotel) {
-      navigation('/');
+      navigation('/catalog');
     }
   }, [hotel, navigation]);
 

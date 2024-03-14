@@ -7,12 +7,8 @@ import { LoadingComponent } from '../../app/layout/LoadingComponent';
 import { agent } from '../../app/api/agent';
 
 export const Bookings = () => {
-  const [reload, setReload] = useState(false); // new state variable
   const [bookings, setBookings] = useState<BookingDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBooking, setSelectedBooking] = useState<
-    BookingDto | undefined
-  >(undefined);
 
   useEffect(() => {
     agent.Member.getBookings()
@@ -28,13 +24,9 @@ export const Bookings = () => {
         console.log(error);
       })
       .finally(() => setLoading(false));
-  }, [reload]);
+  }, []);
 
-  const cancelBooking = () => {
-    setSelectedBooking(undefined);
-  };
-
-  if (loading) return <LoadingComponent message='Loading hotels...' />;
+  if (loading) return <LoadingComponent message='Loading bookings...' />;
 
   // if (selectedBooking)
   //   return (

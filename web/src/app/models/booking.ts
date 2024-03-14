@@ -46,8 +46,8 @@ export interface BookingDto {
   hotelPrice: number;
   hotelRating: string;
   hotelFileName: string;
-  checkIn: string | null;
-  checkOut: string | null;
+  checkIn: Date | null;
+  checkOut: Date | null;
   status: BookingStatus;
 }
 

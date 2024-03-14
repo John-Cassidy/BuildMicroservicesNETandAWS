@@ -9,7 +9,11 @@ import {
   Typography,
 } from '@mui/material';
 import { BookingDto, getBookingStatus } from '../../app/models/booking';
-import { currencyFormat, formatDate } from '../../app/util/util';
+import {
+  calculateTotalPrice,
+  currencyFormat,
+  formatDate,
+} from '../../app/util/util';
 
 import { Link } from 'react-router-dom';
 import { agent } from '../../app/api/agent';
@@ -45,7 +49,13 @@ export const BookingCard = ({ booking }: Props) => {
           {getBookingStatus(booking.status)}
         </Typography>
         <Typography gutterBottom color='secondary' variant='h5'>
-          {currencyFormat(booking.hotelPrice)}
+          {currencyFormat(
+            calculateTotalPrice(
+              booking.checkIn,
+              booking.checkOut,
+              booking.hotelPrice
+            )
+          )}
         </Typography>
         <Typography variant='body2' color='text.secondary'>
           {booking.hotelCity} - {booking.hotelRating} stars
