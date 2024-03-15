@@ -212,3 +212,13 @@ Hotel Entity has 3 Domain Boundaries:
   - Book Hotel (may include multiple microservices for: shopping cart, payment, loyalty, applying coupons)
 
 ![Domain Boundaries of Hotel Entity](./resources/screenshots/03_Domain_Boundaries.png)
+
+## Homepage Image Slider
+
+[Add Slider to Homepage - React Slick](https://react-slick.neostack.com/)
+
+```powershell
+npm i react-slick
+npm i --save-dev @types/react-slick
+npm i slick-carousel
+```

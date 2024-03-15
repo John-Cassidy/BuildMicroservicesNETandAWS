@@ -285,12 +285,3 @@ DELETE /index_name
 
 ![Booking Event Sourcing Pattern](./resources/screenshots/10_Customer_Book_Hotel_Event_Sourcing_Pattern.png)
 
-## Homepage Image Slider
-
-[Add Slider to Homepage - React Slick](https://react-slick.neostack.com/)
-
-```powershell
-npm i react-slick
-npm i --save-dev @types/react-slick
-npm i slick-carousel
-```
