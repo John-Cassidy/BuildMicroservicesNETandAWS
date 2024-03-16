@@ -285,3 +285,10 @@ DELETE /index_name
 
 ![Booking Event Sourcing Pattern](./resources/screenshots/10_Customer_Book_Hotel_Event_Sourcing_Pattern.png)
 
+## Kafka and .NET
+
+[Run Kafka and Docker/ docker-compose](https://github.com/aussiearef/kafka-dotnet/blob/main/Docker/docker-compose.yml)
+
+[Example Application Connecting, Producing, and Consuming Events w/Kafka](https://github.com/aussiearef/kafka-dotnet)
+
+[Example of Schema Registry](https://github.com/confluentinc/confluent-kafka-dotnet/blob/master/examples/AvroGeneric/Program.cs)
